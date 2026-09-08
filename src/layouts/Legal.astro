@@ -38,10 +38,11 @@ const { title, en, desc, draft = false, effective } = Astro.props;
   .legal { max-width: 860px; }
   .draft {
     display: block;
-    padding: 16px 20px;
+    padding: 18px 22px;
     margin-bottom: 34px;
     border-left: 3px solid var(--red);
-    background: #fdf3f2;
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    background: var(--red-100);
     font-size: 0.875rem;
     color: #7d3a37;
     line-height: 1.7;

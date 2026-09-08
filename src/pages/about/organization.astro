@@ -91,26 +91,28 @@ const DIVISIONS = [
     display: flex;
     flex-direction: column;
     gap: 5px;
-    padding: 16px 24px;
-    border: 1px solid var(--line-2);
+    padding: 18px 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
     background: var(--paper);
+    box-shadow: var(--shadow-1);
     text-align: center;
-    min-width: 168px;
+    min-width: 172px;
   }
   .node strong { font-size: 1rem; font-weight: 600; }
   .node span { font-size: 0.8125rem; color: var(--muted); }
 
   .node--gov { background: var(--surface); }
   .node--ceo {
-    border-color: var(--blue);
-    border-width: 2px;
-    background: var(--blue);
+    border-color: transparent;
+    background: var(--grad-blue);
     color: #fff;
-    min-width: 210px;
-    padding: 20px 30px;
+    min-width: 216px;
+    padding: 22px 32px;
+    box-shadow: 0 10px 28px rgba(18, 68, 157, 0.28);
   }
   .node--ceo span { color: rgba(255, 255, 255, 0.8); }
-  .node--div { border-top: 3px solid var(--red); }
+  .node--div { border-top: 3px solid var(--red); border-radius: var(--r-sm); }
 
   .chart__divs {
     display: grid;
@@ -134,9 +136,10 @@ const DIVISIONS = [
     font-size: 0.8125rem;
     color: var(--muted);
     text-align: center;
-    padding: 9px 10px;
+    padding: 10px 12px;
     background: var(--surface);
     border: 1px solid var(--line);
+    border-radius: var(--r-xs);
   }
 
   .note { margin-top: 44px; font-size: 0.8125rem; color: var(--muted-2); text-align: center; }
