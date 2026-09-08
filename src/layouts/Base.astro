@@ -1,0 +1,137 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { COMPANY, url } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 히어로가 있는 메인은 헤더가 화면 위에 겹쳐 뜬다. */
+  transparentHeader?: boolean;
+}
+
+const {
+  title,
+  description = `${COMPANY.nameKoShort}는 신기술사업자 및 벤처기업에 대한 투자·융자와 경영 및 기술의 지도를 전문으로 하는 신기술사업금융회사입니다.`,
+  transparentHeader = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} | KoreTech Investment` : 'KoreTech Investment | 코어테크인베스트먼트';
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(url('/brand/og-image.png'), Astro.site).href;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KoreTech Investment" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="ko_KR" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href={url('/favicon.ico')} sizes="any" />
+    <link rel="icon" type="image/png" href={url('/brand/favicon-32.png')} sizes="32x32" />
+    <link rel="apple-touch-icon" href={url('/brand/favicon-180.png')} />
+    <meta name="theme-color" content="#12449d" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FinancialService',
+        name: COMPANY.nameKo,
+        alternateName: COMPANY.nameEn,
+        url: `https://${COMPANY.domain}`,
+        telephone: `+82-2-558-2555`,
+        email: COMPANY.email,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '봉은사로 306, 11층',
+          addressLocality: '강남구',
+          addressRegion: '서울특별시',
+          addressCountry: 'KR',
+        },
+      })}
+    />
+  </head>
+  <body>
+    <a class="skip" href="#main">본문 바로가기</a>
+    <Header transparent={transparentHeader} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      document.documentElement.classList.add('js');
+
+      // 스크롤 등장 — 요소는 CSS에서 이미 보이는 상태가 기본값이고, js가 붙었을 때만 숨겼다 띄운다.
+      const reveals = document.querySelectorAll<HTMLElement>('.reveal');
+      if (reveals.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                (e.target as HTMLElement).classList.add('is-in');
+                io.unobserve(e.target);
+              }
+            });
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.06 }
+        );
+        reveals.forEach((el) => io.observe(el));
+      } else {
+        reveals.forEach((el) => el.classList.add('is-in'));
+      }
+
+      // 숫자 카운트업
+      const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+      if (counters.length) {
+        const co = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              const el = e.target as HTMLElement;
+              co.unobserve(el);
+              const target = Number(el.dataset.count);
+              const plain = el.dataset.plain === '1';
+              if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                el.textContent = plain ? String(target) : target.toLocaleString();
+                return;
+              }
+              const t0 = performance.now();
+              const dur = 1300;
+              const tick = (now: number) => {
+                const p = Math.min(1, (now - t0) / dur);
+                const v = Math.round(target * (1 - Math.pow(1 - p, 3)));
+                el.textContent = plain ? String(v) : v.toLocaleString();
+                if (p < 1) requestAnimationFrame(tick);
+              };
+              requestAnimationFrame(tick);
+            });
+          },
+          { threshold: 0.4 }
+        );
+        counters.forEach((el) => co.observe(el));
+      }
+    </script>
+  </body>
+</html>

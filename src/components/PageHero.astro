@@ -1,0 +1,95 @@
+---
+import { NAV, url } from '../lib/site';
+
+interface Props {
+  title: string;
+  en: string;
+  desc?: string;
+  /** 상단 대메뉴 라벨 — 하위 탭을 자동으로 그린다 */
+  group?: string;
+}
+const { title, en, desc, group } = Astro.props;
+
+const parent = group ? NAV.find((n) => n.label === group) : undefined;
+const here = Astro.url.pathname.replace(/\/$/, '');
+---
+
+<section class="ph">
+  <div class="wrap ph__in">
+    <p class="ph__en">{en}</p>
+    <h1 class="ph__h">{title}</h1>
+    {desc && <p class="ph__desc">{desc}</p>}
+  </div>
+
+  {parent?.children && (
+    <nav class="ph__tabs" aria-label="하위 메뉴">
+      <div class="wrap ph__tabs-in">
+        {parent.children.map((c) => (
+          <a
+            class:list={['ph__tab', here === url(c.href).replace(/\/$/, '') && 'is-on']}
+            href={url(c.href)}
+            aria-current={here === url(c.href).replace(/\/$/, '') ? 'page' : undefined}
+          >
+            {c.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  )}
+</section>
+
+<style>
+  .ph { background: var(--ground); color: #fff; position: relative; overflow: hidden; }
+  .ph::after {
+    content: '';
+    position: absolute;
+    right: -8%;
+    top: -60%;
+    width: 52%;
+    aspect-ratio: 1;
+    background: radial-gradient(circle, rgba(18, 68, 157, 0.42) 0%, transparent 66%);
+    pointer-events: none;
+  }
+  .ph__in { position: relative; padding-block: clamp(74px, 11vw, 128px) clamp(40px, 6vw, 62px); }
+  .ph__en {
+    margin: 0 0 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--blue-lift);
+  }
+  .ph__h {
+    margin: 0;
+    font-size: clamp(2rem, 4.4vw, 3.375rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    color: #fff;
+  }
+  .ph__desc {
+    margin: 20px 0 0;
+    max-width: 52ch;
+    font-size: clamp(0.9375rem, 1.3vw, 1.125rem);
+    font-weight: 300;
+    line-height: 1.72;
+    color: rgba(255, 255, 255, 0.68);
+  }
+
+  .ph__tabs { position: relative; border-top: 1px solid rgba(255, 255, 255, 0.13); }
+  .ph__tabs-in { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .ph__tabs-in::-webkit-scrollbar { display: none; }
+  .ph__tab {
+    flex: none;
+    padding: 17px 20px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .ph__tab:hover { color: #fff; }
+  .ph__tab.is-on { color: #fff; font-weight: 500; border-bottom-color: var(--red-lift); }
+</style>

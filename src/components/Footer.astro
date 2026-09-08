@@ -1,0 +1,126 @@
+---
+import { COMPANY, NAV, url } from '../lib/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="ft">
+  <div class="ft__in">
+    <div class="ft__brand">
+      <img src={url('/brand/logo-full-dark.png')} alt="KoreTech Investment" width="900" height="315" />
+      <p class="ft__tag">대한민국 핵심 기술기업의 성장 파트너</p>
+    </div>
+
+    <nav class="ft__nav" aria-label="푸터 메뉴">
+      {NAV.map((item) => (
+        <div class="ft__col">
+          <a class="ft__head" href={url(item.href)}>{item.label}</a>
+          {item.children && item.children.map((c) => (
+            <a class="ft__link" href={url(c.href)}>{c.label}</a>
+          ))}
+        </div>
+      ))}
+    </nav>
+  </div>
+
+  <div class="ft__in ft__meta">
+    <div class="ft__info">
+      <p>{COMPANY.nameKo} <span class="ft__sep">|</span> 대표이사 {COMPANY.ceo}</p>
+      <p>{COMPANY.address}</p>
+      <p class="num">
+        T. {COMPANY.tel} <span class="ft__sep">|</span> F. {COMPANY.fax}
+        <span class="ft__sep">|</span> E. <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+      </p>
+    </div>
+    <div class="ft__legal">
+      <a href={url('/legal/privacy')}>개인정보처리방침</a>
+      <a href={url('/legal/credit-info')}>신용정보활용체제</a>
+      <a href={url('/legal/rate-cut-request')}>금리인하요구권 안내</a>
+      <a href={url('/sitemap')}>사이트맵</a>
+    </div>
+  </div>
+
+  <div class="ft__in ft__copy">
+    <p>© {year} {COMPANY.nameEn} All rights reserved.</p>
+  </div>
+</footer>
+
+<style>
+  .ft {
+    background: var(--ground);
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.875rem;
+    line-height: 1.8;
+  }
+  .ft__in {
+    max-width: var(--wrap);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .ft__in:first-child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: clamp(32px, 6vw, 80px);
+    padding-block: clamp(52px, 7vw, 76px) 44px;
+  }
+  .ft__brand img { width: 218px; }
+  .ft__tag { margin-top: 18px; color: rgba(255, 255, 255, 0.5); font-size: 0.875rem; }
+
+  .ft__nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 28px 20px;
+  }
+  .ft__col { display: flex; flex-direction: column; gap: 9px; }
+  .ft__head {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    padding-bottom: 4px;
+  }
+  .ft__link { color: rgba(255, 255, 255, 0.58); text-decoration: none; }
+  .ft__link:hover, .ft__head:hover { color: var(--blue-lift); }
+
+  .ft__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px 40px;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-block: 28px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .ft__info p { color: rgba(255, 255, 255, 0.58); font-size: 0.8125rem; line-height: 1.9; }
+  .ft__info a { color: inherit; }
+  .ft__info a:hover { color: var(--blue-lift); }
+  .ft__sep { color: rgba(255, 255, 255, 0.25); margin-inline: 6px; }
+
+  .ft__legal { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  .ft__legal a {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+  }
+  .ft__legal a:first-child { color: #fff; font-weight: 500; }
+  .ft__legal a:hover { color: var(--blue-lift); }
+
+  .ft__copy {
+    padding-block: 20px 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .ft__copy p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.34);
+  }
+
+  @media (max-width: 860px) {
+    .ft__in:first-child { grid-template-columns: 1fr; }
+    .ft__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

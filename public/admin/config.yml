@@ -1,0 +1,114 @@
+# ============================================================
+# Decap CMS — 코어테크인베스트먼트 콘텐츠 관리
+#   접속: https://<사이트주소>/admin/
+#
+# backend 설정 안내
+#   - github + auth_type: pkce 는 별도 인증 서버 없이 동작한다.
+#     GitHub OAuth App을 하나 만들고 그 Client ID를 app_id 에 넣으면 된다.
+#     (Authorization callback URL 은 사이트의 /admin/ 주소로 등록)
+#   - Netlify 로 옮길 경우 backend 를 git-gateway 로 바꾸면 된다.
+# ============================================================
+
+backend:
+  name: github
+  repo: yoonho0625/koretechinv
+  branch: main
+  auth_type: pkce
+  app_id: GITHUB_OAUTH_CLIENT_ID_HERE
+  commit_messages:
+    create: '{{collection}} 등록: {{slug}}'
+    update: '{{collection}} 수정: {{slug}}'
+    delete: '{{collection}} 삭제: {{slug}}'
+    uploadMedia: '파일 업로드: {{path}}'
+    deleteMedia: '파일 삭제: {{path}}'
+
+# 로컬에서 `npx decap-server` 를 띄우면 로그인 없이 편집 테스트가 가능하다.
+local_backend: true
+
+media_folder: 'public/uploads'
+public_folder: '/koretechinv/uploads'
+
+locale: 'ko'
+publish_mode: simple
+
+collections:
+  # ---------------- 경영공시 ----------------
+  - name: 'disclosure'
+    label: '경영공시'
+    label_singular: '공시'
+    folder: 'src/content/disclosure'
+    create: true
+    slug: '{{year}}-{{month}}-{{slug}}'
+    summary: '{{date}} · {{title}}'
+    sortable_fields: ['date', 'title']
+    view_filters:
+      - label: '작성중만'
+        field: draft
+        pattern: true
+    fields:
+      - { name: 'title', label: '제목', widget: 'string' }
+      - { name: 'date', label: '공시일', widget: 'datetime', date_format: 'YYYY-MM-DD', time_format: false, format: 'YYYY-MM-DD' }
+      - name: 'category'
+        label: '구분'
+        widget: 'select'
+        default: '통일경영공시'
+        options: ['통일경영공시', '수시공시', '주주총회', '기타']
+      - name: 'files'
+        label: '첨부파일'
+        label_singular: '파일'
+        widget: 'list'
+        required: false
+        summary: '{{fields.label}}'
+        fields:
+          - { name: 'label', label: '표시 이름', widget: 'string', hint: '예: 2026년 통일경영공시.hwp' }
+          - { name: 'file', label: '파일', widget: 'file', hint: 'hwp / pdf / docx / xlsx 등. 10MB 이하 권장' }
+      - { name: 'draft', label: '작성중(사이트에 노출 안 함)', widget: 'boolean', default: false }
+      - { name: 'body', label: '본문', widget: 'markdown', required: false }
+
+  # ---------------- 뉴스 ----------------
+  - name: 'news'
+    label: '뉴스'
+    label_singular: '뉴스'
+    folder: 'src/content/news'
+    create: true
+    slug: '{{year}}-{{month}}-{{slug}}'
+    summary: '{{date}} · {{title}}'
+    sortable_fields: ['date', 'title']
+    fields:
+      - { name: 'title', label: '제목', widget: 'string' }
+      - { name: 'date', label: '날짜', widget: 'datetime', date_format: 'YYYY-MM-DD', time_format: false, format: 'YYYY-MM-DD' }
+      - { name: 'summary', label: '한 줄 요약', widget: 'text', required: false }
+      - { name: 'source', label: '출처(언론사)', widget: 'string', required: false }
+      - { name: 'link', label: '원문 링크', widget: 'string', required: false, hint: 'https:// 로 시작하는 전체 주소' }
+      - { name: 'thumbnail', label: '대표 이미지', widget: 'image', required: false }
+      - name: 'files'
+        label: '첨부파일'
+        widget: 'list'
+        required: false
+        summary: '{{fields.label}}'
+        fields:
+          - { name: 'label', label: '표시 이름', widget: 'string' }
+          - { name: 'file', label: '파일', widget: 'file' }
+      - { name: 'draft', label: '작성중(사이트에 노출 안 함)', widget: 'boolean', default: false }
+      - { name: 'body', label: '본문', widget: 'markdown', required: false }
+
+  # ---------------- 포트폴리오 ----------------
+  - name: 'portfolio'
+    label: '포트폴리오'
+    label_singular: '투자기업'
+    folder: 'src/content/portfolio'
+    create: true
+    slug: '{{slug}}'
+    summary: '{{company}} · {{sector}}'
+    sortable_fields: ['order', 'company', 'year']
+    fields:
+      - { name: 'company', label: '기업명', widget: 'string' }
+      - { name: 'sector', label: '분야', widget: 'string', hint: '예: 반도체, 바이오, ICT — 같은 값끼리 필터로 묶입니다' }
+      - { name: 'year', label: '투자연도', widget: 'number', value_type: 'int', required: false, min: 2026, max: 2100 }
+      - { name: 'stage', label: '투자단계', widget: 'string', required: false, hint: '예: Series A, Pre-IPO' }
+      - { name: 'summary', label: '한 줄 소개', widget: 'text', required: false }
+      - { name: 'logo', label: '기업 로고', widget: 'image', required: false }
+      - { name: 'website', label: '홈페이지 주소', widget: 'string', required: false }
+      - { name: 'order', label: '정렬 순서', widget: 'number', value_type: 'int', default: 0, hint: '숫자가 클수록 앞에 나옵니다' }
+      - { name: 'draft', label: '작성중(사이트에 노출 안 함)', widget: 'boolean', default: false }
+      - { name: 'body', label: '상세 내용', widget: 'markdown', required: false }

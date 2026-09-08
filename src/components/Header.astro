@@ -1,0 +1,222 @@
+---
+import { NAV, url } from '../lib/site';
+
+interface Props { transparent?: boolean }
+const { transparent = false } = Astro.props;
+
+const here = Astro.url.pathname.replace(/\/$/, '');
+const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''));
+---
+
+<header class:list={['hd', transparent && 'hd--over']} data-header>
+  <div class="hd__in">
+    <a class="hd__logo" href={url('/')} aria-label="KoreTech Investment 홈">
+      <img class="hd__logo-img hd__logo-img--dark" src={url('/brand/wordmark-dark.png')} alt="KoreTech Investment" width="700" height="121" />
+      <img class="hd__logo-img hd__logo-img--light" src={url('/brand/wordmark.png')} alt="KoreTech Investment" width="700" height="121" />
+    </a>
+
+    <nav class="hd__nav" aria-label="주 메뉴">
+      <ul class="hd__ul">
+        {NAV.map((item) => (
+          <li class="hd__li">
+            <a class:list={['hd__a', isActive(item.href) && 'is-active']} href={url(item.href)}>{item.label}</a>
+            {item.children && (
+              <ul class="hd__sub">
+                {item.children.map((c) => (
+                  <li><a href={url(c.href)}>{c.label}</a></li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <button class="hd__burger" type="button" aria-expanded="false" aria-controls="mobile-nav" data-burger>
+      <span class="sr-only">메뉴 열기</span>
+      <span class="hd__burger-bar"></span>
+      <span class="hd__burger-bar"></span>
+    </button>
+  </div>
+
+  <div class="mnav" id="mobile-nav" hidden data-mobile>
+    <nav aria-label="모바일 메뉴">
+      {NAV.map((item) => (
+        <div class="mnav__group">
+          <a class="mnav__top" href={url(item.href)}>{item.label}</a>
+          {item.children && (
+            <div class="mnav__kids">
+              {item.children.map((c) => <a href={url(c.href)}>{c.label}</a>)}
+            </div>
+          )}
+        </div>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  .hd {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+  /* 메인 히어로 위에 겹쳐 뜨는 상태 */
+  .hd--over {
+    position: fixed;
+    inset: 0 0 auto 0;
+    background: transparent;
+    border-bottom-color: transparent;
+  }
+  .hd--over.is-stuck {
+    background: rgba(10, 14, 21, 0.86);
+    backdrop-filter: blur(10px);
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .hd__in {
+    max-width: var(--wrap);
+    margin-inline: auto;
+    padding: 0 var(--gutter);
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .hd__logo { display: block; flex: none; }
+  .hd__logo-img { width: 168px; height: auto; }
+  .hd__logo-img--dark { display: none; }
+  .hd--over .hd__logo-img--dark { display: block; }
+  .hd--over .hd__logo-img--light { display: none; }
+
+  .hd__nav { margin-left: auto; }
+  .hd__ul { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+  .hd__li { position: relative; }
+
+  .hd__a {
+    display: block;
+    padding: 26px 18px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    color: var(--ink);
+    transition: color 0.2s var(--ease);
+  }
+  .hd__a.is-active { color: var(--blue); }
+  .hd__a:hover { color: var(--blue); }
+  .hd--over .hd__a { color: rgba(255, 255, 255, 0.82); }
+  .hd--over .hd__a:hover,
+  .hd--over .hd__a.is-active { color: #fff; }
+
+  /* 드롭다운 */
+  .hd__sub {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 168px;
+    margin: 0;
+    padding: 8px 0;
+    list-style: none;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: 0 14px 34px rgba(48, 41, 42, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.18s var(--ease), transform 0.18s var(--ease), visibility 0.18s;
+  }
+  .hd__li:hover .hd__sub,
+  .hd__li:focus-within .hd__sub { opacity: 1; visibility: visible; transform: none; }
+  .hd__sub a {
+    display: block;
+    padding: 9px 18px;
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .hd__sub a:hover { color: var(--blue); background: var(--surface); }
+
+  /* 모바일 */
+  .hd__burger {
+    display: none;
+    width: 44px; height: 44px;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    background: none; border: 0; cursor: pointer; padding: 0;
+  }
+  .hd__burger-bar {
+    display: block; width: 22px; height: 1.5px;
+    background: var(--ink);
+    transition: transform 0.25s var(--ease), opacity 0.2s var(--ease);
+  }
+  .hd--over .hd__burger-bar { background: #fff; }
+  .hd__burger[aria-expanded='true'] .hd__burger-bar:nth-child(2) { transform: translateY(3.75px) rotate(45deg); }
+  .hd__burger[aria-expanded='true'] .hd__burger-bar:nth-child(3) { transform: translateY(-3.75px) rotate(-45deg); }
+
+  .mnav {
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    padding: 8px var(--gutter) 28px;
+    max-height: calc(100vh - 76px);
+    overflow-y: auto;
+  }
+  .mnav__group { border-bottom: 1px solid var(--line); padding: 4px 0 12px; }
+  .mnav__top {
+    display: block;
+    padding: 14px 0 6px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .mnav__kids { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .mnav__kids a { font-size: 0.9375rem; color: var(--muted); text-decoration: none; padding: 4px 0; }
+  .mnav__kids a:hover { color: var(--blue); }
+
+  @media (max-width: 900px) {
+    .hd__nav { display: none; }
+    .hd__burger { display: flex; }
+    .hd__in { height: 64px; }
+    .hd__logo-img { width: 142px; }
+    /* 모바일에서 메뉴를 열면 배경이 흰색이 되므로 로고도 라이트 버전으로 */
+    .hd--over.is-open { background: var(--paper); border-bottom-color: var(--line); }
+    .hd--over.is-open .hd__logo-img--dark { display: none; }
+    .hd--over.is-open .hd__logo-img--light { display: block; }
+    .hd--over.is-open .hd__burger-bar { background: var(--ink); }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const burger = document.querySelector<HTMLButtonElement>('[data-burger]');
+  const panel = document.querySelector<HTMLElement>('[data-mobile]');
+
+  if (header?.classList.contains('hd--over')) {
+    const onScroll = () => header.classList.toggle('is-stuck', window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
+  if (burger && panel && header) {
+    burger.addEventListener('click', () => {
+      const open = burger.getAttribute('aria-expanded') === 'true';
+      burger.setAttribute('aria-expanded', String(!open));
+      panel.hidden = open;
+      header.classList.toggle('is-open', !open);
+    });
+  }
+</script>

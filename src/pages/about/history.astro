@@ -1,0 +1,108 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+
+/**
+ * 연혁 — 초안(홈페이지제작초안_20260828.docx) 기준.
+ * 날짜가 확정되지 않은 항목은 tbd: true 로 두면 "예정"으로 표시된다.
+ */
+const HISTORY = [
+  {
+    year: '2026',
+    items: [
+      { date: '06.05', title: '주식회사 코어테크인베스트먼트 설립', desc: '자본금 5억원' },
+      { date: '06', title: '유상증자 115억원', desc: '납입자본금 누계 120억원', tbd: true },
+      { date: '10', title: '신기술사업금융업 등록', desc: '「여신전문금융업법」에 따른 등록', tbd: true },
+    ],
+  },
+];
+---
+
+<Base title="연혁" description="코어테크인베스트먼트의 설립과 주요 연혁입니다.">
+  <PageHero en="History" title="연혁" group="About us" />
+
+  <section class="section">
+    <div class="wrap">
+      {HISTORY.map((block) => (
+        <div class="era reveal">
+          <p class="era__year num">{block.year}</p>
+          <ol class="era__list">
+            {block.items.map((it) => (
+              <li class="ev">
+                <span class="ev__date num">{it.date}{it.tbd && <i>·</i>}</span>
+                <div class="ev__body">
+                  <h3 class="ev__title">
+                    {it.title}
+                    {it.tbd && <span class="ev__tbd">예정</span>}
+                  </h3>
+                  {it.desc && <p class="ev__desc">{it.desc}</p>}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+
+      <p class="note reveal">
+        ※ 유상증자일과 신기술사업금융업 등록일은 확정 후 갱신됩니다.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .era {
+    display: grid;
+    grid-template-columns: minmax(120px, 220px) minmax(0, 1fr);
+    gap: clamp(24px, 5vw, 64px);
+    align-items: start;
+  }
+  .era__year {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--line-strong);
+    margin: 0;
+    position: sticky;
+    top: 108px;
+  }
+  .era__list { margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+
+  .ev {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 20px;
+    padding: 26px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ev__date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.9375rem;
+    color: var(--blue);
+    padding-top: 2px;
+  }
+  .ev__date i { font-style: normal; color: var(--line-strong); }
+  .ev__title { font-size: 1.0625rem; font-weight: 500; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ev__tbd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--muted-2);
+    border: 1px solid var(--line-strong);
+    padding: 2px 7px;
+  }
+  .ev__desc { margin-top: 7px; font-size: 0.9375rem; color: var(--muted); }
+
+  .note { margin-top: 34px; font-size: 0.8125rem; color: var(--muted-2); }
+
+  @media (max-width: 780px) {
+    .era { grid-template-columns: 1fr; gap: 16px; }
+    .era__year { position: static; font-size: 2.25rem; }
+  }
+  @media (max-width: 520px) {
+    .ev { grid-template-columns: 1fr; gap: 6px; }
+  }
+</style>

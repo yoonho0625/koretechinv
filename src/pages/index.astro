@@ -1,0 +1,417 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import HeroJourney from '../components/HeroJourney.astro';
+import { COMPANY, PROCESS, SERVICES, url } from '../lib/site';
+
+const live = <T extends { data: { draft?: boolean } }>(c: T[]) => c.filter((e) => !e.data.draft);
+
+const disclosures = live(await getCollection('disclosure'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+const news = live(await getCollection('news'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+const portfolio = live(await getCollection('portfolio'))
+  .sort((a, b) => b.data.order - a.data.order)
+  .slice(0, 6);
+
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<Base transparentHeader>
+  <HeroJourney />
+
+  <!-- ABOUT ------------------------------------------------------------- -->
+  <section class="section" id="about">
+    <div class="wrap grid-editorial reveal">
+      <p class="label">About us</p>
+      <div>
+        <h2 class="h2">
+          코어테크인베스트먼트는<br />
+          <strong>핵심 기술</strong>에 투자하는 신기술사업금융회사입니다.
+        </h2>
+        <p class="lead" style="margin-top:26px">
+          신기술사업자 및 벤처기업에 대한 다양한 방법의 투자 또는 융자와
+          경영 및 기술의 지도를 전문으로 합니다.
+        </p>
+        <a class="btn btn--ghost" style="margin-top:34px" href={url('/about/overview')}>
+          회사소개 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 지표 --------------------------------------------------------------- -->
+  <section class="section section--tint">
+    <div class="wrap">
+      <dl class="stats reveal">
+        <div class="stat">
+          <dt>납입자본금</dt>
+          <dd><span class="num" data-count="120">0</span><i>억원</i></dd>
+        </div>
+        <div class="stat">
+          <dt>설립</dt>
+          <dd><span class="num" data-count="2026" data-plain="1">0</span><i class="tight">년 6월</i></dd>
+        </div>
+        <div class="stat">
+          <dt>업무영역</dt>
+          <dd><span>신기술사업금융업</span></dd>
+        </div>
+        <div class="stat">
+          <dt>주주구성</dt>
+          <dd><span>㈜엘아이아이씨엠 <span class="num">100</span>%</span></dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 업무영역 ----------------------------------------------------------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="grid-editorial reveal">
+        <p class="label">Business area</p>
+        <div>
+          <h2 class="h2">업무영역</h2>
+          <p class="lead" style="margin-top:18px">
+            자본과 부채, 그리고 그 이후의 동행까지. 기업의 단계에 맞는 방식으로 지원합니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="cards reveal">
+        {SERVICES.map((s, i) => (
+          <article class="card">
+            <p class="card__no num">{String(i + 1).padStart(2, '0')}</p>
+            <h3 class="card__h">{s.title}</h3>
+            <p class="card__en">{s.en}</p>
+            <p class="card__desc">{s.desc}</p>
+            <ul class="card__list">
+              {s.items.map((it) => <li>{it}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 투자 프로세스 ------------------------------------------------------- -->
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="grid-editorial reveal">
+        <p class="label">Investment process</p>
+        <div>
+          <h2 class="h2">투자 프로세스</h2>
+          <p class="lead" style="margin-top:18px">
+            발굴부터 사후관리까지, 정해진 절차에 따라 투명하게 검토합니다.
+          </p>
+        </div>
+      </div>
+
+      <ol class="steps reveal">
+        {PROCESS.map((p) => (
+          <li class="step">
+            <span class="step__no num">{p.step}</span>
+            <h3 class="step__h">{p.title}</h3>
+            <p class="step__en">{p.en}</p>
+            <p class="step__desc">{p.desc}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 포트폴리오 ---------------------------------------------------------- -->
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          <p class="label">Portfolio</p>
+          <h2 class="h2" style="margin-top:12px">투자 포트폴리오</h2>
+        </div>
+        <a class="btn btn--ghost" href={url('/portfolio')}>
+          전체보기 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      {portfolio.length === 0 ? (
+        <p class="empty reveal">포트폴리오를 준비하고 있습니다.</p>
+      ) : (
+        <div class="pf reveal">
+          {portfolio.map((p) => (
+            <a class="pf__item" href={url(`/portfolio/${p.id}`)}>
+              <span class="pf__sector">{p.data.sector}</span>
+              <span class="pf__name">{p.data.company}</span>
+              {p.data.year && <span class="pf__year num">{p.data.year}</span>}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <!-- 공시 / 뉴스 --------------------------------------------------------- -->
+  <section class="section section--line">
+    <div class="wrap notice">
+      <div class="notice__col">
+        <div class="sec-head reveal">
+          <div>
+            <p class="label">Disclosure</p>
+            <h2 class="h3" style="margin-top:10px">경영공시</h2>
+          </div>
+          <a class="more" href={url('/notice/disclosure')}>더보기 <span aria-hidden="true">→</span></a>
+        </div>
+        {disclosures.length === 0 ? (
+          <p class="empty reveal">등록된 공시가 없습니다.</p>
+        ) : (
+          <div class="list reveal">
+            {disclosures.map((d) => (
+              <a class="list__row" href={url(`/notice/disclosure/${d.id}`)}>
+                <span class="list__title">{d.data.title}</span>
+                <span class="list__meta">{fmt(d.data.date)}</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="notice__col">
+        <div class="sec-head reveal">
+          <div>
+            <p class="label">News</p>
+            <h2 class="h3" style="margin-top:10px">뉴스</h2>
+          </div>
+          <a class="more" href={url('/notice/news')}>더보기 <span aria-hidden="true">→</span></a>
+        </div>
+        {news.length === 0 ? (
+          <p class="empty reveal">등록된 뉴스가 없습니다.</p>
+        ) : (
+          <div class="list reveal">
+            {news.map((n) => (
+              <a class="list__row" href={url(`/notice/news/${n.id}`)}>
+                <span class="list__title">{n.data.title}</span>
+                <span class="list__meta">{fmt(n.data.date)}</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT ------------------------------------------------------------ -->
+  <section class="cta">
+    <div class="wrap cta__in reveal">
+      <div>
+        <p class="label label--onDark">Contact</p>
+        <h2 class="cta__h">
+          투자를 준비하고 계신가요?<br />
+          <span>사업계획서를 보내주세요.</span>
+        </h2>
+        <p class="cta__p">
+          검토 결과는 담당자가 개별적으로 회신드립니다.
+        </p>
+      </div>
+      <div class="cta__side">
+        <a class="btn btn--onDark" href={url('/contact')}>
+          투자 문의 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <dl class="cta__info">
+          <div><dt>T</dt><dd class="num">{COMPANY.tel}</dd></div>
+          <div><dt>E</dt><dd><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></dd></div>
+          <div><dt>A</dt><dd>{COMPANY.addressShort}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  strong { font-weight: 600; color: var(--blue); }
+
+  /* 지표 */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    background: var(--line);
+    border-block: 1px solid var(--line);
+  }
+  .stat { background: var(--surface); padding: 30px 26px; }
+  .stat dt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-2);
+  }
+  .stat dd {
+    margin: 12px 0 0;
+    font-size: clamp(1.375rem, 2.4vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .stat dd i { font-style: normal; font-size: 0.9375rem; font-weight: 400; color: var(--muted); margin-left: 4px; }
+  .stat dd i.tight { margin-left: 1px; }
+  .stat:nth-child(3) dd, .stat:nth-child(4) dd { font-size: clamp(1rem, 1.5vw, 1.1875rem); font-weight: 500; }
+  @media (max-width: 780px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* 업무영역 카드 */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin-top: clamp(40px, 6vw, 64px);
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .card { background: var(--paper); padding: clamp(28px, 3vw, 40px); display: flex; flex-direction: column; }
+  .card__no {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--red);
+    letter-spacing: 0.1em;
+    margin: 0;
+  }
+  .card__h { margin: 18px 0 0; font-size: 1.375rem; }
+  .card__en {
+    margin: 6px 0 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    color: var(--muted-2);
+  }
+  .card__desc { margin: 18px 0 0; font-size: 0.9375rem; color: var(--muted); line-height: 1.75; }
+  .card__list {
+    margin: 22px 0 0;
+    padding: 18px 0 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card__list li { position: relative; padding-left: 15px; font-size: 0.875rem; color: var(--ink); }
+  .card__list li::before {
+    content: '';
+    position: absolute; left: 0; top: 0.72em;
+    width: 5px; height: 1px; background: var(--red);
+  }
+  @media (max-width: 880px) { .cards { grid-template-columns: 1fr; } }
+
+  /* 프로세스 */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 24px;
+    margin: clamp(40px, 6vw, 64px) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .step { border-top: 2px solid var(--ink); padding-top: 20px; }
+  .step__no {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--blue);
+    letter-spacing: 0.12em;
+  }
+  .step__h { margin: 14px 0 0; font-size: 1.0625rem; }
+  .step__en {
+    margin: 4px 0 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.75rem;
+    color: var(--muted-2);
+  }
+  .step__desc { margin: 12px 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+  @media (max-width: 980px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .steps { grid-template-columns: 1fr; gap: 18px; } }
+
+  /* 섹션 헤더 */
+  .sec-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+  .more {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .more:hover { color: var(--blue); }
+
+  /* 포트폴리오 */
+  .pf { border-top: 2px solid var(--ink); }
+  .pf__item {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: baseline;
+    padding: 24px 4px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: background 0.18s var(--ease);
+  }
+  .pf__item:hover { background: var(--surface); }
+  .pf__sector {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+  }
+  .pf__name { font-size: 1.125rem; font-weight: 500; }
+  .pf__item:hover .pf__name { color: var(--blue); }
+  .pf__year { font-family: 'IBM Plex Mono', monospace; font-size: 0.8125rem; color: var(--muted-2); }
+  @media (max-width: 640px) {
+    .pf__item { grid-template-columns: 1fr auto; gap: 6px 16px; }
+    .pf__sector { grid-column: 1 / -1; }
+  }
+
+  /* 공시·뉴스 2단 */
+  .notice {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(36px, 5vw, 64px);
+  }
+  @media (max-width: 860px) { .notice { grid-template-columns: 1fr; } }
+
+  /* CTA */
+  .cta { background: var(--ground); color: #fff; }
+  .cta__in {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(32px, 6vw, 72px);
+    align-items: center;
+    padding-block: clamp(64px, 9vw, 108px);
+  }
+  .cta__h {
+    margin: 16px 0 0;
+    font-size: clamp(1.625rem, 3.2vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.3;
+    color: #fff;
+  }
+  .cta__h span { color: rgba(255, 255, 255, 0.55); }
+  .cta__p { margin: 20px 0 0; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.6); }
+  .cta__side { display: flex; flex-direction: column; align-items: flex-start; gap: 30px; }
+  .cta__info { margin: 0; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .cta__info > div { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: baseline; }
+  .cta__info dt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    color: var(--blue-lift);
+    letter-spacing: 0.1em;
+  }
+  .cta__info dd { margin: 0; font-size: 0.875rem; color: rgba(255, 255, 255, 0.72); }
+  .cta__info a { color: inherit; }
+  .cta__info a:hover { color: #fff; }
+  @media (max-width: 860px) { .cta__in { grid-template-columns: 1fr; } }
+</style>

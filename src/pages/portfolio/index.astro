@@ -1,0 +1,136 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { url } from '../../lib/site';
+
+const items = (await getCollection('portfolio'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.order - a.data.order || (b.data.year ?? 0) - (a.data.year ?? 0));
+
+const sectors = [...new Set(items.map((i) => i.data.sector))];
+---
+
+<Base title="포트폴리오" description="코어테크인베스트먼트가 투자한 기업입니다.">
+  <PageHero
+    en="Portfolio"
+    title="포트폴리오"
+    desc="기술로 시장의 문제를 푸는 기업들과 함께하고 있습니다."
+  />
+
+  <section class="section">
+    <div class="wrap">
+      {items.length === 0 ? (
+        <div class="empty reveal">
+          <p style="font-size:1.0625rem;color:var(--ink);margin-bottom:8px">포트폴리오를 준비하고 있습니다.</p>
+          <p style="font-size:0.875rem">투자 기업이 확정되는 대로 이곳에 공개됩니다.</p>
+        </div>
+      ) : (
+        <>
+          {sectors.length > 1 && (
+            <div class="filters reveal">
+              <button class="filter is-on" type="button" data-filter="*">전체 <span class="num">{items.length}</span></button>
+              {sectors.map((s) => (
+                <button class="filter" type="button" data-filter={s}>
+                  {s} <span class="num">{items.filter((i) => i.data.sector === s).length}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div class="pf-grid reveal" data-grid>
+            {items.map((p) => (
+              <a class="pfc" href={url(`/portfolio/${p.id}`)} data-sector={p.data.sector}>
+                <div class="pfc__top">
+                  {p.data.logo ? (
+                    <img class="pfc__logo" src={url(p.data.logo)} alt="" loading="lazy" />
+                  ) : (
+                    <span class="pfc__mark" aria-hidden="true">{p.data.company.slice(0, 1)}</span>
+                  )}
+                  {p.data.year && <span class="pfc__year num">{p.data.year}</span>}
+                </div>
+                <h2 class="pfc__name">{p.data.company}</h2>
+                <p class="pfc__sector">{p.data.sector}{p.data.stage && ` · ${p.data.stage}`}</p>
+                {p.data.summary && <p class="pfc__sum">{p.data.summary}</p>}
+              </a>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .filter {
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 9px 18px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s var(--ease);
+  }
+  .filter span { font-size: 0.75rem; color: var(--muted-2); margin-left: 4px; }
+  .filter:hover { border-color: var(--ink); color: var(--ink); }
+  .filter.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .filter.is-on span { color: rgba(255, 255, 255, 0.6); }
+
+  .pf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .pfc {
+    background: var(--paper);
+    padding: 28px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.2s var(--ease);
+  }
+  .pfc:hover { background: var(--surface); }
+  .pfc[hidden] { display: none; }
+  .pfc__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+  .pfc__logo { max-height: 40px; width: auto; max-width: 140px; object-fit: contain; }
+  .pfc__mark {
+    display: grid; place-items: center;
+    width: 40px; height: 40px;
+    background: var(--surface-2);
+    color: var(--blue);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+  }
+  .pfc__year { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; color: var(--muted-2); }
+  .pfc__name { margin: 22px 0 0; font-size: 1.25rem; }
+  .pfc:hover .pfc__name { color: var(--blue); }
+  .pfc__sector {
+    margin: 7px 0 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--red);
+  }
+  .pfc__sum { margin: 14px 0 0; font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+</style>
+
+<script>
+  const grid = document.querySelector<HTMLElement>('[data-grid]');
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+  if (grid && buttons.length) {
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const want = btn.dataset.filter;
+        buttons.forEach((b) => b.classList.toggle('is-on', b === btn));
+        grid.querySelectorAll<HTMLElement>('.pfc').forEach((card) => {
+          card.hidden = want !== '*' && card.dataset.sector !== want;
+        });
+      });
+    });
+  }
+</script>

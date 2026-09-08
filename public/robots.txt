@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yoonho0625.github.io/koretechinv/sitemap-index.xml

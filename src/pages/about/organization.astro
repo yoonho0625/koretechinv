@@ -1,0 +1,148 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { COMPANY } from '../../lib/site';
+
+/**
+ * 조직도 — 제작 초안에 조직도 이미지가 없어, 신기술사업금융회사의
+ * 일반적인 구조로 초안을 구성했다. 확정안을 받으면 이 배열만 고치면 된다.
+ */
+const GOVERNANCE = [
+  { name: '주주총회', note: '㈜엘아이아이씨엠 100%' },
+  { name: '이사회', note: '경영 의사결정' },
+  { name: '감사', note: '내부 감사' },
+];
+
+const DIVISIONS = [
+  {
+    name: '투자본부',
+    desc: '투자 발굴, 심사, 집행 및 사후관리',
+    teams: ['투자심사팀', '포트폴리오관리팀'],
+  },
+  {
+    name: '경영관리본부',
+    desc: '재무·회계, 인사·총무, 공시 업무',
+    teams: ['경영지원팀', '재무회계팀'],
+  },
+  {
+    name: '준법감시인',
+    desc: '내부통제기준 준수 여부 점검',
+    teams: ['리스크관리', '내부통제'],
+  },
+];
+---
+
+<Base title="조직도" description={`${COMPANY.nameKoShort}의 조직 구성입니다.`}>
+  <PageHero en="Organization" title="조직도" group="About us" />
+
+  <section class="section">
+    <div class="wrap">
+      <div class="chart reveal">
+        <div class="chart__top">
+          {GOVERNANCE.map((g) => (
+            <div class="node node--gov">
+              <strong>{g.name}</strong>
+              <span>{g.note}</span>
+            </div>
+          ))}
+        </div>
+
+        <div class="chart__stem" aria-hidden="true"></div>
+
+        <div class="node node--ceo">
+          <strong>대표이사</strong>
+          <span>{COMPANY.ceo}</span>
+        </div>
+
+        <div class="chart__stem" aria-hidden="true"></div>
+        <div class="chart__bar" aria-hidden="true"></div>
+
+        <div class="chart__divs">
+          {DIVISIONS.map((d) => (
+            <div class="branch">
+              <div class="branch__stem" aria-hidden="true"></div>
+              <div class="node node--div">
+                <strong>{d.name}</strong>
+                <span>{d.desc}</span>
+              </div>
+              <ul class="branch__teams">
+                {d.teams.map((t) => <li>{t}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p class="note reveal">
+        ※ 위 조직도는 표준 구성에 따른 초안입니다. 확정된 조직도를 전달해 주시면 반영합니다.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .chart { display: flex; flex-direction: column; align-items: center; }
+
+  .chart__top { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .chart__stem { width: 1px; height: 30px; background: var(--line-strong); }
+  .chart__bar { width: min(100%, 760px); height: 1px; background: var(--line-strong); }
+
+  .node {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 16px 24px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    text-align: center;
+    min-width: 168px;
+  }
+  .node strong { font-size: 1rem; font-weight: 600; }
+  .node span { font-size: 0.8125rem; color: var(--muted); }
+
+  .node--gov { background: var(--surface); }
+  .node--ceo {
+    border-color: var(--blue);
+    border-width: 2px;
+    background: var(--blue);
+    color: #fff;
+    min-width: 210px;
+    padding: 20px 30px;
+  }
+  .node--ceo span { color: rgba(255, 255, 255, 0.8); }
+  .node--div { border-top: 3px solid var(--red); }
+
+  .chart__divs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    width: min(100%, 760px);
+  }
+  .branch { display: flex; flex-direction: column; align-items: center; }
+  .branch__stem { width: 1px; height: 28px; background: var(--line-strong); }
+  .branch .node { width: 100%; }
+  .branch__teams {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .branch__teams li {
+    font-size: 0.8125rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 9px 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .note { margin-top: 44px; font-size: 0.8125rem; color: var(--muted-2); text-align: center; }
+
+  @media (max-width: 780px) {
+    .chart__divs { grid-template-columns: 1fr; gap: 6px; }
+    .chart__bar { display: none; }
+  }
+</style>

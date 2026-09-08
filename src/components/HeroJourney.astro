@@ -1,0 +1,558 @@
+---
+/**
+ * 메인 히어로 — 스크롤 3D 여정 (시안 C)
+ *   1막 대한민국  : 흩어진 입자가 한반도 지형으로 모인다
+ *   2막 핵심      : 한반도가 구형 코어로 재배열된다
+ *   3막 기술      : 코어가 회전하며 열린다
+ *   4막 KoreTech  : 입자가 실제 CI 로고(워드마크) 모양으로 재조합된다
+ *
+ * 4막의 로고 모양과 색은 /brand/wordmark-dark.png 의 픽셀을 런타임에 샘플링해서 만든다.
+ * 로고 파일을 교체하면 이 장면도 자동으로 따라간다.
+ */
+import { url } from '../lib/site';
+const logoSrc = url('/brand/wordmark-dark.png');
+---
+
+<section class="hero" data-hero>
+  <div class="hero__pin">
+    <canvas class="hero__gl" data-gl data-logo={logoSrc} aria-hidden="true"></canvas>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__acts">
+      <div class="act" data-act="0">
+        <p class="act__no">01 — KOREA</p>
+        <h1 class="act__h">대한민국<span class="dot">.</span></h1>
+        <p class="act__p">기술로 미래를 여는 기업들이 이 땅 곳곳에서 성장하고 있습니다.</p>
+      </div>
+
+      <div class="act" data-act="1">
+        <p class="act__no">02 — CORE</p>
+        <p class="act__h">핵심<span class="dot">.</span></p>
+        <p class="act__p">그중 산업의 중심이 될 핵심 기술기업을 발굴하고 집중합니다.</p>
+      </div>
+
+      <div class="act" data-act="2">
+        <p class="act__no">03 — TECH</p>
+        <p class="act__h">기술<span class="dot">.</span></p>
+        <p class="act__p">투자와 융자, 경영·기술 지도로 기술이 사업이 되도록 함께합니다.</p>
+      </div>
+
+      <!-- 4막의 "KoreTech"는 입자가 그린다. 아래 텍스트가 로고 락업을 완성한다. -->
+      <div class="act act--final" data-act="3">
+        <p class="sr-only">KoreTech Investment</p>
+        <p class="act__word" aria-hidden="true">INVESTMENT</p>
+        <p class="act__tag">대한민국 핵심 기술기업의 성장 파트너</p>
+        <a class="act__cta" href={url('/about/overview')}>회사소개 <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+
+    <ol class="hero__dots" aria-hidden="true">
+      <li data-dot="0" class="is-on"></li><li data-dot="1"></li><li data-dot="2"></li><li data-dot="3"></li>
+    </ol>
+
+    <p class="hero__scroll" data-scrollhint><span>SCROLL</span><i></i></p>
+  </div>
+</section>
+
+<style>
+  .hero { position: relative; height: 420vh; background: var(--ground); }
+  .hero__pin {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+    background: var(--ground);
+  }
+  .hero__gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .hero__veil {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 68% 62% at 50% 48%, transparent 0%, rgba(10, 14, 21, 0.88) 100%);
+  }
+
+  .hero__acts { position: absolute; inset: 0; pointer-events: none; }
+
+  .act {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: max(var(--gutter), calc((100vw - var(--wrap)) / 2 + var(--gutter)));
+    opacity: 0;
+    transform: translateY(22px);
+    will-change: opacity, transform;
+  }
+  /* 스크립트가 붙기 전에도 1막은 읽히는 상태여야 한다 */
+  .act[data-act='0'] { opacity: 1; transform: none; }
+
+  .act__no {
+    margin: 0 0 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    color: var(--blue-lift);
+  }
+  .act__h {
+    margin: 0;
+    font-size: clamp(3rem, 8.5vw, 7.5rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    color: #fff;
+  }
+  .act__h .dot { color: var(--red-lift); }
+  .act__p {
+    margin: 24px 0 0;
+    max-width: 30ch;
+    font-size: clamp(1rem, 1.55vw, 1.3125rem);
+    font-weight: 300;
+    line-height: 1.68;
+    color: rgba(255, 255, 255, 0.74);
+  }
+
+  /* 입자가 그리는 워드마크가 화면 중앙을 차지하므로, 글자는 그 아래에서 시작한다 */
+  .act--final {
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 63svh;
+    text-align: center;
+  }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .act__word {
+    margin: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(0.875rem, 1.7vw, 1.375rem);
+    font-weight: 300;
+    letter-spacing: 0.52em;
+    text-indent: 0.52em;
+    color: rgba(255, 255, 255, 0.92);
+  }
+  .act__tag {
+    margin: 22px 0 0;
+    font-size: clamp(0.9375rem, 1.4vw, 1.1875rem);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .act__cta {
+    pointer-events: auto;
+    margin-top: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 30px;
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.22s var(--ease), color 0.22s var(--ease), border-color 0.22s var(--ease);
+  }
+  .act__cta:hover { background: #fff; color: var(--ground); border-color: #fff; }
+
+  .hero__dots {
+    position: absolute;
+    right: clamp(16px, 3vw, 40px);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .hero__dots li {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.24);
+    transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  }
+  .hero__dots li.is-on { background: var(--blue-lift); box-shadow: 0 0 12px var(--blue-lift); }
+
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .hero__scroll i {
+    display: block; width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--blue-lift), transparent);
+    animation: heroDrop 1.9s ease-in-out infinite;
+  }
+  @keyframes heroDrop {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* WebGL이 없거나 모션을 줄이는 환경 — 마지막 장면만 정지 화면으로 보여준다 */
+  .hero.is-static { height: auto; }
+  .hero.is-static .hero__pin { position: relative; height: auto; min-height: 74vh; }
+  .hero.is-static .hero__gl,
+  .hero.is-static .hero__dots,
+  .hero.is-static .hero__scroll { display: none; }
+  .hero.is-static .hero__acts { position: static; display: grid; place-items: center; padding-block: clamp(90px, 14vw, 150px); }
+  .hero.is-static .act { display: none; }
+  .hero.is-static .act--final {
+    display: flex; position: static; opacity: 1; transform: none; inset: auto;
+    padding-top: 0; justify-content: center;
+  }
+  .hero.is-static .act__word { font-size: 1.125rem; }
+  .hero.is-static .hero__veil {
+    background: radial-gradient(ellipse 70% 70% at 50% 46%, rgba(18, 68, 157, 0.26) 0%, transparent 70%);
+  }
+
+  @media (max-width: 700px) {
+    .hero { height: 380vh; }
+    .act__p { max-width: 24ch; }
+    .act--final { padding-top: 60svh; }
+  }
+</style>
+
+<script>
+  import * as THREE from 'three';
+
+  const section = document.querySelector<HTMLElement>('[data-hero]');
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-gl]');
+
+  if (section && canvas) {
+    const acts = Array.from(section.querySelectorAll<HTMLElement>('.act'));
+    const dots = Array.from(section.querySelectorAll<HTMLElement>('[data-dot]'));
+    const hint = section.querySelector<HTMLElement>('[data-scrollhint]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let renderer: THREE.WebGLRenderer | null = null;
+    if (!reduce) {
+      try {
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: false,
+          powerPreference: 'high-performance',
+        });
+      } catch {
+        renderer = null;
+      }
+    }
+
+    if (!renderer) {
+      section.classList.add('is-static');
+    } else {
+      const gl = renderer;
+      const isMobile = window.innerWidth < 768;
+      gl.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+      camera.position.set(0, 0, 10);
+
+      // ---------- 한반도 윤곽 (경도/위도) ----------
+      const OUTLINE: [number, number][] = [
+        [130.7, 42.3], [129.7, 41.7], [129.4, 40.5], [128.4, 39.9], [127.6, 39.4], [128.3, 38.6],
+        [129.0, 37.6], [129.4, 36.8], [129.4, 36.0], [129.2, 35.4], [128.5, 35.0], [127.7, 34.7],
+        [126.9, 34.4], [126.3, 34.6], [126.4, 35.2], [126.6, 35.8], [126.5, 36.5], [126.2, 36.9],
+        [126.7, 37.5], [126.3, 37.9], [125.2, 38.0], [124.7, 38.5], [125.3, 39.0], [125.3, 39.6],
+        [124.4, 40.0], [125.0, 40.6], [126.0, 41.2], [126.9, 41.7], [127.5, 41.5], [128.2, 41.4],
+        [128.8, 42.0], [129.9, 42.9],
+      ];
+      const inside = (x: number, y: number) => {
+        let c = false;
+        for (let i = 0, j = OUTLINE.length - 1; i < OUTLINE.length; j = i++) {
+          const [xi, yi] = OUTLINE[i];
+          const [xj, yj] = OUTLINE[j];
+          if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+        }
+        return c;
+      };
+      const CX = 127.4, CY = 38.0, LON_SQUEEZE = 0.8, SCALE = 0.56;
+
+      const N = isMobile ? 7000 : 17000;
+      const korea = new Float32Array(N * 3);
+      const core = new Float32Array(N * 3);
+      const logo = new Float32Array(N * 3);
+      const seed = new Float32Array(N);
+      const tone = new Float32Array(N);      // 1·2·3막 색: 0 블루 / 1 레드
+      const toneLogo = new Float32Array(N);  // 4막 색: 로고 픽셀에서 샘플링
+
+      let i = 0;
+      while (i < N) {
+        let lon: number, lat: number;
+        if (i < N * 0.028) {
+          const a = Math.random() * Math.PI * 2;
+          const r = Math.sqrt(Math.random());
+          lon = 126.55 + Math.cos(a) * r * 0.38;
+          lat = 33.4 + Math.sin(a) * r * 0.14; // 제주
+        } else {
+          lon = 124 + Math.random() * 7.2;
+          lat = 33.8 + Math.random() * 9.4;
+          if (!inside(lon, lat)) continue;
+        }
+        korea[i * 3] = (lon - CX) * LON_SQUEEZE * SCALE;
+        korea[i * 3 + 1] = (lat - CY) * SCALE;
+        korea[i * 3 + 2] = (Math.random() - 0.5) * 0.16;
+
+        const k = i + 0.5;
+        const phi = Math.acos(1 - (2 * k) / N);
+        const th = Math.PI * (1 + Math.sqrt(5)) * k;
+        const rr = i % 5 === 0 ? 2.05 * Math.cbrt(Math.random()) : 2.05;
+        core[i * 3] = rr * Math.cos(th) * Math.sin(phi);
+        core[i * 3 + 1] = rr * Math.sin(th) * Math.sin(phi);
+        core[i * 3 + 2] = rr * Math.cos(phi);
+
+        // 로고 샘플링 전까지는 코어와 같은 자리 (샘플링 실패 시의 폴백)
+        logo[i * 3] = core[i * 3];
+        logo[i * 3 + 1] = core[i * 3 + 1];
+        logo[i * 3 + 2] = core[i * 3 + 2];
+
+        seed[i] = Math.random();
+        tone[i] = Math.random() < 0.4 ? 1 : 0;
+        toneLogo[i] = tone[i];
+        i++;
+      }
+
+      const geo = new THREE.BufferGeometry();
+      const logoAttr = new THREE.BufferAttribute(logo, 3);
+      const toneLogoAttr = new THREE.BufferAttribute(toneLogo, 1);
+      geo.setAttribute('position', new THREE.BufferAttribute(korea, 3));
+      geo.setAttribute('aCore', new THREE.BufferAttribute(core, 3));
+      geo.setAttribute('aLogo', logoAttr);
+      geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+      geo.setAttribute('aTone', new THREE.BufferAttribute(tone, 1));
+      geo.setAttribute('aToneLogo', toneLogoAttr);
+
+      const U = {
+        uTime: { value: 0 },
+        uMorph: { value: 0 }, // 0 한반도 → 1 코어 → 2 로고
+        uIntro: { value: 0 },
+        uPR: { value: gl.getPixelRatio() },
+        // 로고 좌표는 가로폭 1.0 으로 정규화해 두고, 화면 비율에 맞춰 여기서 키운다.
+        // 샘플링 전에는 aLogo 가 코어 좌표(폴백)이므로 1 로 둔다.
+        uLogoScale: { value: 1 },
+        uBlue: { value: new THREE.Color('#5a92ee') },
+        uRed: { value: new THREE.Color('#e45a56') },
+      };
+      let logoReady = false;
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: U,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: /* glsl */ `
+          attribute vec3 aCore;
+          attribute vec3 aLogo;
+          attribute float aSeed;
+          attribute float aTone;
+          attribute float aToneLogo;
+          uniform float uTime, uMorph, uIntro, uPR, uLogoScale;
+          varying float vTone, vDepth, vStage;
+          float ease(float t){ return t * t * (3.0 - 2.0 * t); }
+          void main(){
+            vec3 scatter = position + vec3(sin(aSeed * 91.0), cos(aSeed * 67.0), sin(aSeed * 53.0)) * 6.5;
+            float ti = ease(clamp((uIntro - aSeed * 0.4) / 0.6, 0.0, 1.0));
+            vec3 p0 = mix(scatter, position, ti);
+
+            float m1 = ease(clamp(uMorph - aSeed * 0.22, 0.0, 1.0));
+            float m2 = ease(clamp(uMorph - 1.0 - aSeed * 0.22, 0.0, 1.0));
+            vec3 p = mix(p0, aCore, m1);
+            p = mix(p, aLogo * uLogoScale, m2);
+
+            p += 0.045 * vec3(
+              sin(uTime + aSeed * 41.0),
+              cos(uTime * 1.2 + aSeed * 33.0),
+              sin(uTime * 0.8 + aSeed * 21.0)
+            );
+
+            vec4 mv = modelViewMatrix * vec4(p, 1.0);
+            vDepth = -mv.z;
+            vStage = m2;
+            vTone = mix(aTone, aToneLogo, m2);
+            gl_PointSize = (1.75 + m2 * 0.6) * uPR * (10.0 / vDepth);
+            gl_Position = projectionMatrix * mv;
+          }
+        `,
+        fragmentShader: /* glsl */ `
+          uniform vec3 uBlue, uRed;
+          varying float vTone, vDepth, vStage;
+          void main(){
+            vec2 c = gl_PointCoord - 0.5;
+            float r = length(c);
+            if (r > 0.5) discard;
+            float a = smoothstep(0.5, 0.04, r);
+            vec3 col = mix(uBlue, uRed, vTone);
+            gl_FragColor = vec4(col, a * (0.86 + 0.14 * vStage) * smoothstep(17.0, 6.0, vDepth));
+          }
+        `,
+      });
+
+      const group = new THREE.Group();
+      group.add(new THREE.Points(geo, material));
+      scene.add(group);
+
+      // ---------- 4막: 실제 로고 PNG를 샘플링해 입자 좌표·색을 만든다 ----------
+      const logoImg = new Image();
+      logoImg.decoding = 'async';
+      logoImg.onload = () => {
+        const cv = document.createElement('canvas');
+        const w = (cv.width = logoImg.naturalWidth);
+        const h = (cv.height = logoImg.naturalHeight);
+        const ctx = cv.getContext('2d', { willReadFrequently: true });
+        if (!ctx || !w || !h) return;
+        ctx.drawImage(logoImg, 0, 0);
+
+        let data: Uint8ClampedArray;
+        try {
+          data = ctx.getImageData(0, 0, w, h).data;
+        } catch {
+          return; // 캔버스가 오염되면 코어 폴백을 유지한다
+        }
+
+        const scale = 1 / w; // 가로폭 1.0 으로 정규화 (실제 크기는 uLogoScale 이 정한다)
+        let placed = 0;
+        let guard = 0;
+        const maxTries = N * 300;
+        while (placed < N && guard < maxTries) {
+          guard++;
+          const x = (Math.random() * w) | 0;
+          const y = (Math.random() * h) | 0;
+          const idx = (y * w + x) * 4;
+          if (data[idx + 3] < 130) continue;
+          logo[placed * 3] = (x - w / 2) * scale;
+          logo[placed * 3 + 1] = (h / 2 - y) * scale;
+          logo[placed * 3 + 2] = (Math.random() - 0.5) * 0.22;
+          const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+          toneLogo[placed] = r > g + 26 && r > b + 26 ? 1 : 0;
+          placed++;
+        }
+        if (placed < N * 0.4) return; // 샘플이 너무 적으면 폴백 유지
+
+        // 남는 입자는 로고 뒤로 옅게 흩뿌려 배경을 만든다 (같은 정규화 공간)
+        for (let k = placed; k < N; k++) {
+          const a = Math.random() * Math.PI * 2;
+          const rad = 0.5 + Math.random() * 0.42;
+          logo[k * 3] = Math.cos(a) * rad;
+          logo[k * 3 + 1] = Math.sin(a) * rad * 0.34;
+          logo[k * 3 + 2] = (Math.random() - 0.5) * 0.18;
+          toneLogo[k] = Math.random() < 0.3 ? 1 : 0;
+        }
+        logoAttr.needsUpdate = true;
+        toneLogoAttr.needsUpdate = true;
+        logoReady = true;
+        fitLogo();
+      };
+      logoImg.src = canvas.dataset.logo ?? '';
+
+      // ---------- 리사이즈 ----------
+      // 4막 카메라 거리(9.1)에서 화면에 보이는 가로폭에 맞춰 로고 크기를 정한다.
+      const fitLogo = () => {
+        if (!logoReady) return;
+        const visibleW = 2 * 9.1 * Math.tan((45 * Math.PI) / 360) * camera.aspect;
+        U.uLogoScale.value = Math.min(7.4, visibleW * 0.82);
+      };
+      const resize = () => {
+        const w = section.clientWidth;
+        const h = Math.max(window.innerHeight, 560);
+        gl.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        fitLogo();
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      // ---------- 스크롤 진행도 ----------
+      let progress = 0;
+      const readProgress = () => {
+        const rect = section.getBoundingClientRect();
+        const total = section.offsetHeight - window.innerHeight;
+        progress = total <= 0 ? 0 : Math.min(1, Math.max(0, -rect.top / total));
+      };
+      readProgress();
+      window.addEventListener('scroll', readProgress, { passive: true });
+      window.addEventListener('resize', readProgress);
+
+      const RANGES: [number, number][] = [
+        [0.0, 0.26],
+        [0.32, 0.5],
+        [0.56, 0.72],
+        [0.8, 1.01],
+      ];
+      const bandOpacity = (p: number, a: number, b: number) => {
+        const fade = 0.05;
+        if (p < a - fade || p > b + fade) return 0;
+        if (p < a) return (p - (a - fade)) / fade;
+        if (p > b) return Math.max(0, 1 - (p - b) / fade);
+        return 1;
+      };
+      const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
+      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+      window.addEventListener('pointermove', (e) => {
+        mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.ty = -((e.clientY / window.innerHeight) * 2 - 1);
+      });
+
+      const clock = new THREE.Clock();
+      const introStart = performance.now();
+      let lastAct = -1;
+
+      const frame = () => {
+        const t = clock.getElapsedTime();
+        U.uTime.value = t;
+        U.uIntro.value = Math.min(1, (performance.now() - introStart) / 2200);
+
+        const p = progress;
+        const m1 = clamp01((p - 0.3) / 0.2);  // 한반도 → 코어
+        const m2 = clamp01((p - 0.74) / 0.2); // 코어 → 로고
+        U.uMorph.value = m1 + m2;
+
+        mouse.x += (mouse.tx - mouse.x) * 0.05;
+        mouse.y += (mouse.ty - mouse.y) * 0.05;
+
+        // 카메라 — 지도로 다가갔다가 코어에서 물러선다
+        const zApproach = 10 - 2.5 * clamp01(p / 0.3);
+        const zCore = zApproach * (1 - m1) + 9.6 * m1;
+        camera.position.z = zCore * (1 - m2) + 9.1 * m2;
+        camera.lookAt(0, 0, 0);
+
+        // 로고 단계에서는 정면을 유지한다 (자전은 코어 단계에서만)
+        const spin = m1 * (1 - m2);
+        group.rotation.y = mouse.x * 0.22 + t * 0.16 * spin + Math.sin(t * 0.5) * 0.05 * m2;
+        group.rotation.x = -mouse.y * 0.13 - 0.3 * clamp01(p / 0.3) * (1 - m1);
+
+        let current = 0;
+        for (let idx = 0; idx < acts.length; idx++) {
+          const o = bandOpacity(p, RANGES[idx][0], RANGES[idx][1]);
+          acts[idx].style.opacity = String(o);
+          acts[idx].style.transform = `translateY(${(1 - o) * 20}px)`;
+          if (o > 0.5) current = idx;
+        }
+        if (current !== lastAct) {
+          lastAct = current;
+          dots.forEach((d, idx) => d.classList.toggle('is-on', idx === current));
+        }
+        if (hint) hint.style.opacity = String(Math.max(0, 1 - p / 0.06));
+
+        gl.render(scene, camera);
+        requestAnimationFrame(frame);
+      };
+      frame();
+    }
+  }
+</script>

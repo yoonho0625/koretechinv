@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { NAV, url } from '../lib/site';
+
+const legal = [
+  { label: '개인정보처리방침', href: '/legal/privacy' },
+  { label: '신용정보활용체제', href: '/legal/credit-info' },
+  { label: '금리인하요구권 안내', href: '/legal/rate-cut-request' },
+];
+---
+
+<Base title="사이트맵" description="코어테크인베스트먼트 홈페이지의 전체 메뉴 구조입니다.">
+  <PageHero en="Sitemap" title="사이트맵" />
+
+  <section class="section">
+    <div class="wrap sm">
+      {NAV.map((item) => (
+        <div class="sm__col">
+          <a class="sm__head" href={url(item.href)}>{item.label}</a>
+          <ul class="sm__list">
+            {item.children
+              ? item.children.map((c) => <li><a href={url(c.href)}>{c.label}</a></li>)
+              : <li><a href={url(item.href)}>바로가기</a></li>}
+          </ul>
+        </div>
+      ))}
+      <div class="sm__col">
+        <span class="sm__head">Legal</span>
+        <ul class="sm__list">
+          {legal.map((l) => <li><a href={url(l.href)}>{l.label}</a></li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sm {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .sm__col { background: var(--paper); padding: 28px 26px; }
+  .sm__head {
+    display: block;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    text-decoration: none;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sm__list { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .sm__list a { font-size: 0.9375rem; color: var(--muted); text-decoration: none; }
+  .sm__list a:hover { color: var(--ink); }
+</style>

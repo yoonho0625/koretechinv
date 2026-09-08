@@ -1,0 +1,151 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { PROCESS } from '../../lib/site';
+
+const pillars = [
+  {
+    kr: '대한민국',
+    en: 'Korea',
+    body: '국내 벤처기업과 중소기업의 지속가능한 성장을 지원하여 우리나라 산업경쟁력과 금융산업 발전에 기여합니다.',
+  },
+  {
+    kr: '핵심',
+    en: 'Core',
+    body: '산업의 중심을 바꿀 수 있는 핵심 기술에 선택과 집중으로 투자합니다. 넓게 뿌리기보다 깊게 봅니다.',
+  },
+  {
+    kr: '기술',
+    en: 'Technology',
+    body: '기술의 완성도와 사업화 가능성을 함께 검증하고, 투자 이후에도 경영·기술 지도로 동행합니다.',
+  },
+];
+---
+
+<Base title="투자철학" description="대한민국(Korea)의 핵심(Core) 기술기업에 대한 투자를 통해 지속가능한 성장을 지원합니다.">
+  <PageHero en="Philosophy" title="투자철학" group="About us" />
+
+  <section class="section">
+    <div class="wrap">
+      <blockquote class="creed reveal">
+        <p>
+          대한민국<em>(Korea)</em>의 핵심<em>(Core)</em> 기술기업에 대한 투자를 통해
+          국내 벤처기업 및 중소기업의 <strong>지속가능한 성장</strong>을 지원하고,
+          우리나라 산업경쟁력과 금융산업 발전에 기여한다.
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="section section--tint">
+    <div class="wrap">
+      <div class="grid-editorial reveal">
+        <p class="label">Three pillars</p>
+        <div>
+          <h2 class="h2">사명(社名)이 곧 기준입니다</h2>
+          <p class="lead" style="margin-top:18px">
+            KoreTech라는 이름은 우리가 무엇을 보고 투자하는지를 그대로 담고 있습니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="pillars reveal">
+        {pillars.map((p) => (
+          <article class="pillar">
+            <p class="pillar__en">{p.en}</p>
+            <h3 class="pillar__kr">{p.kr}</h3>
+            <p class="pillar__body">{p.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid-editorial reveal">
+        <p class="label">Investment process</p>
+        <div>
+          <h2 class="h2">투자 프로세스</h2>
+          <p class="lead" style="margin-top:18px">
+            모든 투자 건은 아래 다섯 단계를 동일하게 거칩니다.
+          </p>
+        </div>
+      </div>
+
+      <ol class="flow reveal">
+        {PROCESS.map((p) => (
+          <li class="flow__row">
+            <span class="flow__no num">{p.step}</span>
+            <div class="flow__body">
+              <h3 class="flow__h">{p.title} <span>{p.en}</span></h3>
+              <p class="flow__desc">{p.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .creed {
+    margin: 0;
+    border-left: 3px solid var(--red);
+    padding: 6px 0 6px clamp(22px, 4vw, 44px);
+    max-width: 30ch;
+  }
+  .creed p {
+    font-size: clamp(1.375rem, 3.1vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.55;
+    letter-spacing: -0.03em;
+  }
+  .creed em { font-style: normal; color: var(--muted-2); font-weight: 400; }
+  .creed strong { color: var(--blue); font-weight: 600; }
+
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin-top: clamp(40px, 6vw, 64px);
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .pillar { background: var(--paper); padding: clamp(28px, 3vw, 40px); }
+  .pillar__en {
+    margin: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--blue);
+  }
+  .pillar__kr { margin: 14px 0 0; font-size: 1.75rem; letter-spacing: -0.035em; }
+  .pillar__body { margin: 16px 0 0; font-size: 0.9375rem; color: var(--muted); line-height: 1.8; }
+  @media (max-width: 880px) { .pillars { grid-template-columns: 1fr; } }
+
+  .flow { margin: clamp(36px, 5vw, 56px) 0 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+  .flow__row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 20px;
+    padding: 26px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .flow__no { font-family: 'IBM Plex Mono', monospace; font-size: 1.5rem; color: var(--line-strong); letter-spacing: -0.02em; }
+  .flow__h { font-size: 1.125rem; }
+  .flow__h span {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--muted-2);
+    margin-left: 10px;
+  }
+  .flow__desc { margin-top: 8px; font-size: 0.9375rem; color: var(--muted); }
+  @media (max-width: 560px) {
+    .flow__row { grid-template-columns: 1fr; gap: 8px; }
+    .flow__no { font-size: 0.875rem; color: var(--blue); }
+  }
+</style>

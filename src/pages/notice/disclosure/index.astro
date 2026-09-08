@@ -1,0 +1,47 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import { url } from '../../../lib/site';
+
+const items = (await getCollection('disclosure'))
+  .filter((d) => !d.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<Base title="경영공시" description="「여신전문금융업법」에 따른 코어테크인베스트먼트의 경영공시입니다.">
+  <PageHero
+    en="Disclosure"
+    title="경영공시"
+    group="Notice"
+    desc="「여신전문금융업법」 및 관련 규정에 따라 경영 현황을 공시합니다."
+  />
+
+  <section class="section">
+    <div class="wrap">
+      {items.length === 0 ? (
+        <p class="empty reveal">등록된 공시가 없습니다.</p>
+      ) : (
+        <div class="list reveal">
+          {items.map((d) => (
+            <a class="list__row" href={url(`/notice/disclosure/${d.id}`)}>
+              <span>
+                <span class="list__title">{d.data.title}</span>
+                <span class="list__tags">
+                  <span class="chip">{d.data.category}</span>
+                  {d.data.files.map((f) => (
+                    <span class="chip chip--file">{f.label.split('.').pop()?.toUpperCase() ?? 'FILE'}</span>
+                  ))}
+                </span>
+              </span>
+              <span class="list__meta">{fmt(d.data.date)}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</Base>

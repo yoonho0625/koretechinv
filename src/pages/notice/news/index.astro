@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import { url } from '../../../lib/site';
+
+const items = (await getCollection('news'))
+  .filter((n) => !n.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) =>
+  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+---
+
+<Base title="뉴스" description="코어테크인베스트먼트의 소식과 언론 보도입니다.">
+  <PageHero en="News" title="뉴스" group="Notice" desc="회사 소식과 언론 보도를 전해드립니다." />
+
+  <section class="section">
+    <div class="wrap">
+      {items.length === 0 ? (
+        <p class="empty reveal">등록된 뉴스가 없습니다.</p>
+      ) : (
+        <div class="news reveal">
+          {items.map((n) => (
+            <a class="ni" href={url(`/notice/news/${n.id}`)}>
+              {n.data.thumbnail && (
+                <span class="ni__thumb"><img src={url(n.data.thumbnail)} alt="" loading="lazy" /></span>
+              )}
+              <span class="ni__body">
+                <span class="ni__meta num">
+                  {fmt(n.data.date)}
+                  {n.data.source && <em>{n.data.source}</em>}
+                </span>
+                <span class="ni__title">{n.data.title}</span>
+                {n.data.summary && <span class="ni__sum">{n.data.summary}</span>}
+              </span>
+              <span class="ni__arrow" aria-hidden="true">→</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .news { border-top: 2px solid var(--ink); }
+  .ni {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: center;
+    padding: 26px 4px;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+    transition: background 0.18s var(--ease);
+  }
+  .ni:hover { background: var(--surface); }
+  .ni__thumb { width: 152px; aspect-ratio: 16 / 10; overflow: hidden; background: var(--surface-2); flex: none; }
+  .ni__thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .ni__body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .ni__meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted-2);
+    letter-spacing: 0.04em;
+  }
+  .ni__meta em { font-style: normal; margin-left: 10px; color: var(--blue); }
+  .ni__title { font-size: 1.125rem; font-weight: 500; line-height: 1.5; }
+  .ni:hover .ni__title { color: var(--blue); }
+  .ni__sum { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+  .ni__arrow { color: var(--line-strong); transition: transform 0.2s var(--ease), color 0.2s var(--ease); }
+  .ni:hover .ni__arrow { transform: translateX(4px); color: var(--blue); }
+  @media (max-width: 640px) {
+    .ni { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .ni__thumb { width: 100%; }
+    .ni__arrow { display: none; }
+  }
+</style>
