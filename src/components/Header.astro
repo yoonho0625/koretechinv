@@ -65,7 +65,8 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--paper);
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px) saturate(140%);
     border-bottom: 1px solid var(--line);
     transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
   }
@@ -77,10 +78,22 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     border-bottom-color: transparent;
   }
   .hd--over.is-stuck {
-    background: rgba(10, 14, 21, 0.86);
-    backdrop-filter: blur(10px);
-    border-bottom-color: rgba(255, 255, 255, 0.12);
+    background: rgba(8, 11, 18, 0.72);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
   }
+  /* 히어로를 지나 밝은 본문 위로 오면 밝은 유리로 바꾼다 */
+  .hd--over.is-light {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-bottom-color: var(--line);
+  }
+  .hd--over.is-light .hd__a { color: var(--ink); }
+  .hd--over.is-light .hd__a:hover,
+  .hd--over.is-light .hd__a.is-active { color: var(--blue); }
+  .hd--over.is-light .hd__logo-img--dark { display: none; }
+  .hd--over.is-light .hd__logo-img--light { display: block; }
+  .hd--over.is-light .hd__burger-bar { background: var(--ink); }
 
   .hd__in {
     max-width: var(--wrap);
@@ -105,10 +118,10 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
 
   .hd__a {
     display: block;
-    padding: 26px 18px;
-    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 25px 18px;
+    font-family: Sora, Pretendard, sans-serif;
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.01em;
     text-decoration: none;
     color: var(--ink);
@@ -131,7 +144,9 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     list-style: none;
     background: var(--paper);
     border: 1px solid var(--line);
-    box-shadow: 0 14px 34px rgba(48, 41, 42, 0.1);
+    border-radius: var(--r-sm);
+    box-shadow: var(--shadow-2);
+    overflow: hidden;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-6px);
@@ -141,8 +156,9 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
   .hd__li:focus-within .hd__sub { opacity: 1; visibility: visible; transform: none; }
   .hd__sub a {
     display: block;
-    padding: 9px 18px;
+    padding: 10px 18px;
     font-size: 0.875rem;
+    font-weight: 500;
     color: var(--muted);
     text-decoration: none;
   }
@@ -177,7 +193,7 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
   .mnav__top {
     display: block;
     padding: 14px 0 6px;
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: Sora, Pretendard, sans-serif;
     font-size: 1.0625rem;
     font-weight: 600;
     text-decoration: none;
@@ -209,6 +225,22 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     const onScroll = () => header.classList.toggle('is-stuck', window.scrollY > 40);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    // 헤더 바로 아래에 어두운 구역이 있으면 어두운 유리, 아니면 밝은 유리로 바꾼다
+    const darkZones = Array.from(document.querySelectorAll<HTMLElement>('[data-hero], .dark-bg'));
+    if (darkZones.length) {
+      const LINE = 72; // 헤더 높이
+      const syncTone = () => {
+        const overDark = darkZones.some((el) => {
+          const r = el.getBoundingClientRect();
+          return r.top <= LINE && r.bottom >= LINE;
+        });
+        header.classList.toggle('is-light', !overDark);
+      };
+      syncTone();
+      window.addEventListener('scroll', syncTone, { passive: true });
+      window.addEventListener('resize', syncTone);
+    }
   }
 
   if (burger && panel && header) {

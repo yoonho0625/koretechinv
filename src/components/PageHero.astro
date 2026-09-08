@@ -14,7 +14,7 @@ const parent = group ? NAV.find((n) => n.label === group) : undefined;
 const here = Astro.url.pathname.replace(/\/$/, '');
 ---
 
-<section class="ph">
+<section class="ph dark-bg">
   <div class="wrap ph__in">
     <p class="ph__en">{en}</p>
     <h1 class="ph__h">{title}</h1>
@@ -24,72 +24,71 @@ const here = Astro.url.pathname.replace(/\/$/, '');
   {parent?.children && (
     <nav class="ph__tabs" aria-label="하위 메뉴">
       <div class="wrap ph__tabs-in">
-        {parent.children.map((c) => (
-          <a
-            class:list={['ph__tab', here === url(c.href).replace(/\/$/, '') && 'is-on']}
-            href={url(c.href)}
-            aria-current={here === url(c.href).replace(/\/$/, '') ? 'page' : undefined}
-          >
-            {c.label}
-          </a>
-        ))}
+        {parent.children.map((c) => {
+          const on = here === url(c.href).replace(/\/$/, '');
+          return (
+            <a class:list={['ph__tab', on && 'is-on']} href={url(c.href)} aria-current={on ? 'page' : undefined}>
+              {c.label}
+            </a>
+          );
+        })}
       </div>
     </nav>
   )}
 </section>
 
 <style>
-  .ph { background: var(--ground); color: #fff; position: relative; overflow: hidden; }
-  .ph::after {
-    content: '';
-    position: absolute;
-    right: -8%;
-    top: -60%;
-    width: 52%;
-    aspect-ratio: 1;
-    background: radial-gradient(circle, rgba(18, 68, 157, 0.42) 0%, transparent 66%);
-    pointer-events: none;
-  }
-  .ph__in { position: relative; padding-block: clamp(74px, 11vw, 128px) clamp(40px, 6vw, 62px); }
+  .ph { position: relative; }
+  .ph__in { position: relative; padding-block: clamp(86px, 12vw, 148px) clamp(44px, 6vw, 68px); }
   .ph__en {
-    margin: 0 0 14px;
-    font-family: 'IBM Plex Mono', monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 16px;
+    font-family: Sora, Pretendard, sans-serif;
     font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.3em;
+    font-weight: 600;
+    letter-spacing: 0.26em;
     text-transform: uppercase;
     color: var(--blue-lift);
   }
+  .ph__en::before {
+    content: '';
+    width: 24px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--blue-lift), var(--red-lift));
+  }
   .ph__h {
     margin: 0;
-    font-size: clamp(2rem, 4.4vw, 3.375rem);
-    font-weight: 600;
-    letter-spacing: -0.035em;
+    font-size: clamp(2.25rem, 5vw, 3.875rem);
+    font-weight: 700;
+    letter-spacing: -0.045em;
     color: #fff;
   }
   .ph__desc {
-    margin: 20px 0 0;
-    max-width: 52ch;
-    font-size: clamp(0.9375rem, 1.3vw, 1.125rem);
+    margin: 22px 0 0;
+    max-width: 46em;
+    font-size: clamp(0.9375rem, 1.35vw, 1.1875rem);
     font-weight: 300;
-    line-height: 1.72;
+    line-height: 1.74;
     color: rgba(255, 255, 255, 0.68);
   }
 
-  .ph__tabs { position: relative; border-top: 1px solid rgba(255, 255, 255, 0.13); }
-  .ph__tabs-in { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .ph__tabs { position: relative; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+  .ph__tabs-in { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-block: 12px; }
   .ph__tabs-in::-webkit-scrollbar { display: none; }
   .ph__tab {
     flex: none;
-    padding: 17px 20px;
+    padding: 10px 20px;
+    border-radius: var(--r-pill);
     font-size: 0.9375rem;
-    font-weight: 400;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
-    border-bottom: 2px solid transparent;
     white-space: nowrap;
-    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+    transition: color 0.22s var(--ease), background 0.22s var(--ease);
   }
-  .ph__tab:hover { color: #fff; }
-  .ph__tab.is-on { color: #fff; font-weight: 500; border-bottom-color: var(--red-lift); }
+  .ph__tab:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+  .ph__tab.is-on { color: var(--ground); background: #fff; font-weight: 600; }
 </style>

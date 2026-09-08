@@ -59,6 +59,20 @@ export const PROCESS = [
   { step: '05', title: '사후관리', en: 'Portfolio Management', desc: '경영·기술 지도와 후속 투자로 성장을 함께합니다.' },
 ] as const;
 
+/** 관심 투자 분야 — 메인의 흐르는 띠에 쓴다. */
+export const SECTORS = [
+  '반도체·디스플레이',
+  '인공지능',
+  '로보틱스',
+  '이차전지',
+  '바이오·헬스케어',
+  '소재·부품·장비',
+  '모빌리티',
+  '우주항공·방산',
+  '사이버보안',
+  '친환경 에너지',
+] as const;
+
 /** 업무영역 */
 export const SERVICES = [
   {
