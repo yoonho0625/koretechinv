@@ -1,101 +1,48 @@
 # 코어테크인베스트먼트 홈페이지
 
-㈜코어테크인베스트먼트(KoreTech Investment) 공식 홈페이지.
+- 홈페이지: https://koretechinv.yoonho-3fa.workers.dev (도메인 연결 전)
+- 관리자: https://koretechinv.yoonho-3fa.workers.dev/admin
+- 최종 도메인(예정): https://www.koretechinv.com
 
-- **공개 주소(임시)**: https://yoonho0625.github.io/koretechinv/
-- **최종 주소(예정)**: https://www.koretechinv.com
-- **콘텐츠 관리**: https://yoonho0625.github.io/koretechinv/admin/
+## 구조
 
----
-
-## 1. 구조
-
-| 영역 | 사용 기술 | 비고 |
+| 영역 | 기술 | 비고 |
 | --- | --- | --- |
-| 사이트 생성 | Astro 5 (정적 빌드) | 서버·DB 없음 |
-| 히어로 3D | three.js | 직접 번들, CDN 의존 없음 |
-| 콘텐츠 관리 | Decap CMS | `/admin/` |
-| 배포 | GitHub Actions → GitHub Pages | `main` 에 커밋되면 자동 재배포 |
-| 문의 폼 | Netlify Forms 규격 | Netlify 이전 시 바로 동작 (아래 4번 참고) |
+| 화면 | Astro 5 | 소개 페이지는 빌드 때 정적 생성, 메인·공지·포트폴리오·관리자는 요청 때 서버 렌더링 |
+| 서버 | Cloudflare Workers `koretechinv` | `@astrojs/cloudflare` 어댑터 |
+| DB | Cloudflare D1 `koretech-db` | 스키마 `migrations/` |
+| 첨부파일 | Cloudflare R2 `koretech-files` | `/files/<id>/<파일명>` 으로 내려받기 |
+| 메인 3D | three.js | `src/components/HeroJourney.astro` |
 
 ```
-src/
-  lib/site.ts          회사 정보·메뉴·업무영역·투자프로세스 (여기만 고치면 전 페이지 반영)
-  styles/global.css    디자인 시스템 (CI 3색에서 파생)
-  components/          Header, Footer, PageHero, HeroJourney(메인 3D)
-  layouts/             Base(공통), Legal(법정 고지)
-  content/             공시·뉴스·포트폴리오 마크다운 (CMS가 여기에 쓴다)
-  pages/               페이지
-public/
-  brand/               로고 파생 에셋 (원본 로고에서 자동 생성)
-  admin/               Decap CMS
-  uploads/             CMS로 올린 첨부파일·이미지
+src/lib/site.ts        회사 정보·메뉴·문구 (여기만 고치면 전 페이지 반영)
+src/lib/server.ts      인증·DB·첨부·본문 렌더링·변경 이력
+src/middleware.ts      /admin 보호
+src/pages/admin/       관리자 화면
+public/brand/          로고 세트 — 프로젝트 폴더 작업기록/스크립트/make_brand.py 가 원본 AI 에서 생성
 ```
 
-## 2. 개발
+## 개발 · 배포
 
 ```bash
 npm install
-npm run dev      # http://localhost:4321/koretechinv
-npm run build    # dist/ 생성
+npm run dev                 # 로컬 (D1·R2 는 로컬 에뮬레이션)
+npm run db:migrate          # 원격 D1 스키마 적용
+npm run deploy              # 빌드 + 배포
 ```
+배포에는 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` 환경변수가 필요하다.
 
-## 3. 콘텐츠 등록 (담당 직원용)
+관리자 계정 발급·비밀번호 초기화: `node scripts/create-admin.mjs <아이디> <이름> <비밀번호 저장 파일>`
 
-1. https://yoonho0625.github.io/koretechinv/admin/ 접속
-2. GitHub 계정으로 로그인
-3. 좌측에서 **경영공시 / 뉴스 / 포트폴리오** 선택 → `New` 클릭
-4. 내용 작성 후 **Publish** → 약 1~2분 뒤 홈페이지에 반영
+검수: `node scripts/shots.cjs <폴더>` (히어로 5막·메인·소개·관리자·모바일 캡처 + 콘솔 오류)
 
-- **작성중** 스위치를 켜두면 홈페이지에 노출되지 않는다. 완성 후 끄면 공개된다.
-- 공시 첨부는 hwp / pdf / docx / xlsx 모두 가능. **10MB 이하** 권장.
+## 보안
+- 비밀번호: PBKDF2-SHA256 10만회, 솔트 16바이트
+- 세션: HMAC 서명 쿠키(HttpOnly · Secure · SameSite=Strict, 8시간), 키는 `wrangler secret SESSION_SECRET`
+- 로그인 실패 15분 8회 → 잠금, 다른 출처 POST 거부(Astro checkOrigin)
+- 본문 마크다운의 원시 HTML 은 글자로 바꿔 표시, 작성중 글·첨부는 관리자만
+- 관리자 응답: no-store · noindex · X-Frame-Options DENY
 
-### 관리자 로그인 설정 (최초 1회)
-
-`public/admin/config.yml` 의 `app_id` 에 GitHub OAuth App의 Client ID를 넣어야 로그인이 된다.
-
-1. https://github.com/settings/developers → **New OAuth App**
-2. 입력값
-   - Application name: `KoreTech CMS`
-   - Homepage URL: `https://yoonho0625.github.io/koretechinv/`
-   - Authorization callback URL: `https://yoonho0625.github.io/koretechinv/admin/`
-3. 발급된 **Client ID** 를 `config.yml` 의 `app_id:` 값으로 교체하고 커밋
-
-> Netlify로 옮기면 `backend` 를 `git-gateway` 로 바꾸고 Netlify Identity로 초대하는 방식도 가능하다.
-
-## 4. 배포처 변경
-
-`astro.config.mjs` 는 환경변수로 주소를 받는다.
-
-| 배포처 | SITE_URL | BASE_PATH |
-| --- | --- | --- |
-| GitHub Pages (현재) | `https://yoonho0625.github.io` | `/koretechinv` |
-| 자체 도메인 | `https://www.koretechinv.com` | `/` |
-
-GitHub Pages에서 자체 도메인을 붙이려면 저장소 Settings → Pages → Custom domain 에
-`www.koretechinv.com` 을 넣고, 위 표에 맞춰 저장소 Variables(`SITE_URL`, `BASE_PATH`)를 바꾼다.
-
-**문의 폼**은 Netlify Forms 규격(`data-netlify="true"`)으로 작성되어 있다.
-GitHub Pages에서는 폼 전송이 동작하지 않으므로, Netlify로 옮기면 별도 작업 없이 바로 접수된다.
-GitHub Pages를 계속 쓸 경우 Formspree 등 외부 폼 서비스의 `action` 주소로 바꾸면 된다.
-
-## 5. 로고 에셋
-
-`public/brand/` 의 파일은 원본 로고(`Logo 투명 png.png`)에서 파생한 것이다.
-로고가 바뀌면 원본을 교체한 뒤 파생 파일을 다시 만들어야 한다.
-
-- `wordmark-dark.png` — **메인 히어로 4막에서 입자가 이 이미지를 샘플링**해 로고 모양을 만든다
-- `logo-full-dark.png` — 푸터
-- `wordmark.png` / `wordmark-dark.png` — 헤더 (밝은/어두운 배경)
-- `favicon-*.png`, `favicon.ico` — 파비콘
-- `og-image.png` — 카카오톡·페이스북 공유 미리보기
-
-## 6. 남은 작업
-
-- [ ] 법정 고지 3종(개인정보처리방침·신용정보활용체제·금리인하요구권)을 법무 검토본으로 교체하고
-      `src/pages/legal/*.astro` 의 `draft` 속성 제거
-- [ ] 조직도 확정안 반영 (`src/pages/about/organization.astro`)
-- [ ] 연혁의 유상증자일·등록일 확정 (`src/pages/about/history.astro`)
-- [ ] 개인정보 보호책임자 / 신용정보관리·보호인 성명·직위 기재
-- [ ] 도메인 연결 및 Netlify 이전(문의 폼 활성화)
-- [ ] 네이버 서치어드바이저 / 구글 서치콘솔 사이트 등록
+## 도메인 연결 (예정)
+koretechinv.com 은 가비아 등록 · 아사달 네임서버(고객사 보유). 연결하려면 존을 Cloudflare 로 옮기거나(메일 MX 유지 필수)
+고객사 DNS 에서 www 레코드를 추가한 뒤 Workers 사용자 지정 도메인을 붙이고 `astro.config.mjs` 의 `SITE_URL` 을 바꾼다.
