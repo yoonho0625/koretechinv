@@ -11,12 +11,17 @@
  * 5막의 선명한 로고는 /brand/logo-stack-dark.svg — 원본 AI 에서 뽑은 벡터. 1행(KoreTech)이 입자 워드마크와 정확히 겹친다.
  */
 import { url } from '../lib/site';
+
+/** 바탕 테마 — navy(기존) · ink(CI 블랙) · paper(밝은 종이, CI 원형) · duo(CI 블랙 + 레드·블루 빛) */
+interface Props { theme?: 'navy' | 'ink' | 'paper' | 'duo' }
+const { theme = 'navy' } = Astro.props;
+const light = theme === 'paper';
 const wordmark = url('/brand/wordmark-dark.png');
-const stack = url('/brand/logo-stack-dark.svg');
+const stack = url(light ? '/brand/logo-stack.svg' : '/brand/logo-stack-dark.svg');
 const stackMask = url('/brand/logo-stack-mask.svg');
 ---
 
-<section class="hero" data-hero>
+<section class="hero" data-hero data-theme={theme} data-tone={light ? "light" : "dark"}>
   <div class="hero__pin">
     <canvas class="hero__gl" data-gl data-logo={wordmark} aria-hidden="true"></canvas>
     <div class="hero__veil" aria-hidden="true"></div>
@@ -68,19 +73,30 @@ const stackMask = url('/brand/logo-stack-mask.svg');
 </section>
 
 <style>
-  .hero { position: relative; height: 560vh; background: var(--ground); }
+  .hero {
+    position: relative; height: 560vh;
+    --h-ground: var(--ground); --h-ink: #fff; --h-ink-2: rgba(255, 255, 255, 0.76); --h-ink-3: rgba(255, 255, 255, 0.5);
+    --h-accent: var(--cyan-lift); --h-dot: var(--red-lift); --h-veil: 8, 11, 18; --h-line: 255, 255, 255;
+    background: var(--h-ground);
+  }
+  .hero[data-theme='ink'] { --h-ground: #1b161c; --h-accent: #c9ced8; --h-veil: 27, 22, 28; }
+  .hero[data-theme='duo'] { --h-ground: #1b161c; --h-accent: #e5524d; --h-veil: 27, 22, 28; }
+  .hero[data-theme='paper'] {
+    --h-ground: #f4f1ec; --h-ink: #1b161c; --h-ink-2: rgba(27, 22, 28, 0.74); --h-ink-3: rgba(27, 22, 28, 0.5);
+    --h-accent: #c23737; --h-dot: #c23737; --h-veil: 244, 241, 236; --h-line: 27, 22, 28;
+  }
   .hero__pin {
     position: sticky;
     top: 0;
     height: 100svh;
     min-height: 560px;
     overflow: hidden;
-    background: var(--ground);
+    background: var(--h-ground);
   }
   .hero__gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .hero__veil {
     position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(ellipse 70% 64% at 50% 48%, transparent 0%, rgba(8, 11, 18, 0.9) 100%);
+    background: radial-gradient(ellipse 70% 64% at 50% 48%, transparent 0%, rgba(var(--h-veil), 0.9) 100%);
   }
 
   .hero__acts { position: absolute; inset: 0; pointer-events: none; }
@@ -107,25 +123,25 @@ const stackMask = url('/brand/logo-stack-mask.svg');
     font-size: clamp(0.875rem, 1.1vw, 1rem);
     font-weight: 600;
     letter-spacing: 0.3em;
-    color: var(--cyan-lift);
+    color: var(--h-accent);
   }
-  .act__no--c { margin: 0; color: rgba(255, 255, 255, 0.5); }
+  .act__no--c { margin: 0; color: var(--h-ink-3); }
   .act__h {
     margin: 0;
     font-size: clamp(3.25rem, 9vw, 8rem);
     font-weight: 700;
     line-height: 0.96;
     letter-spacing: -0.05em;
-    color: #fff;
+    color: var(--h-ink);
   }
-  .act__h .dot { color: var(--red-lift); }
+  .act__h .dot { color: var(--h-dot); }
   .act__p {
     margin: 26px 0 0;
     max-width: 30ch;
     font-size: clamp(1.0625rem, 1.6vw, 1.4375rem);
     font-weight: 300;
     line-height: 1.68;
-    color: rgba(255, 255, 255, 0.76);
+    color: var(--h-ink-2);
   }
 
   /* ---------- 5막 피날레 ----------
@@ -140,6 +156,13 @@ const stackMask = url('/brand/logo-stack-mask.svg');
     width: var(--logo-w, 46vw);
   }
   .finale__logo img { width: 100%; height: auto; filter: drop-shadow(0 8px 36px rgba(79, 139, 234, 0.42)); }
+  /* 밝은 종이 위 모바일: 입자 위에 글이 겹치므로 종이색 번짐으로 글을 띄운다 */
+  @media (max-width: 760px) {
+    .hero[data-theme='paper'] .act__h,
+    .hero[data-theme='paper'] .act__p { text-shadow: 0 0 14px #f4f1ec, 0 0 6px #f4f1ec, 0 0 2px #f4f1ec; }
+  }
+  .hero[data-theme='paper'] .finale__logo img { filter: drop-shadow(0 10px 30px rgba(27, 22, 28, 0.14)); }
+  .hero[data-theme='ink'] .finale__logo img { filter: drop-shadow(0 8px 36px rgba(220, 224, 231, 0.18)); }
 
   /* 반짝이는 물결 — 로고 글자 안쪽만 빛이 훑고 지나간다 */
   .finale__shine {
@@ -177,15 +200,15 @@ const stackMask = url('/brand/logo-stack-mask.svg');
     top: calc(41% + var(--logo-w, 46vw) * 0.2637 + 26px);
     text-align: center;
     padding: 12px var(--gutter) 22px;
-    background: radial-gradient(56% 120% at 50% 44%, rgba(8, 11, 18, 0.8) 0%, rgba(8, 11, 18, 0) 72%);
+    background: radial-gradient(56% 120% at 50% 44%, rgba(var(--h-veil), 0.8) 0%, rgba(var(--h-veil), 0) 72%);
   }
   .finale__tag {
     margin: 0;
     font-size: clamp(1rem, 1.45vw, 1.25rem);
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--h-ink-2);
   }
-  .finale__tag b { font-weight: 600; color: #fff; }
+  .finale__tag b { font-weight: 600; color: var(--h-ink); }
   .finale__cta {
     pointer-events: auto;
     display: inline-flex;
@@ -194,17 +217,17 @@ const stackMask = url('/brand/logo-stack-mask.svg');
     margin-top: 26px;
     padding: 14px 32px;
     border-radius: var(--r-pill);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(var(--h-line), 0.3);
+    background: rgba(var(--h-line), 0.07);
     backdrop-filter: blur(10px);
-    color: #fff;
+    color: var(--h-ink);
     font-size: 0.9375rem;
     font-weight: 600;
     text-decoration: none;
     transition: background 0.24s var(--ease), color 0.24s var(--ease),
       border-color 0.24s var(--ease), transform 0.24s var(--ease);
   }
-  .finale__cta:hover { background: #fff; color: var(--ground); border-color: #fff; transform: translateY(-2px); }
+  .finale__cta:hover { background: var(--h-ink); color: var(--h-ground); border-color: var(--h-ink); transform: translateY(-2px); }
 
   .hero__dots {
     position: absolute;
@@ -220,12 +243,12 @@ const stackMask = url('/brand/logo-stack-mask.svg');
   }
   .hero__dots li {
     width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(var(--h-line), 0.22);
     transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
   }
   .hero__dots li.is-on {
-    background: var(--cyan-lift);
-    box-shadow: 0 0 12px var(--cyan-lift);
+    background: var(--h-accent);
+    box-shadow: 0 0 12px var(--h-accent);
     transform: scale(1.35);
   }
 
@@ -242,11 +265,11 @@ const stackMask = url('/brand/logo-stack-mask.svg');
     font-family: Sora, Pretendard, sans-serif;
     font-size: 0.75rem;
     letter-spacing: 0.3em;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--h-ink-3);
   }
   .hero__scroll i {
     display: block; width: 1px; height: 40px;
-    background: linear-gradient(to bottom, var(--cyan-lift), transparent);
+    background: linear-gradient(to bottom, var(--h-accent), transparent);
     animation: heroDrop 1.9s ease-in-out infinite;
   }
   @keyframes heroDrop {
@@ -456,6 +479,18 @@ const stackMask = url('/brand/logo-stack-mask.svg');
       geo.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
       geo.setAttribute('aToneLogo', toneLogoAttr);
 
+      type Pal = { a: string; b: string; spark: string; flash: string; logoBlue: string; logoRed: string; duo: number; size: number; additive: boolean };
+      const PALETTE: Record<string, Pal> = {
+        navy: { a: '#3b82f6', b: '#22d3ee', spark: '#c9a961', flash: '#ffffff', logoBlue: '#6a9ff0', logoRed: '#ee6560', duo: 0, size: 1, additive: true },
+        // CI 블랙 바탕: 은빛 입자 + CI 레드 반짝이
+        ink: { a: '#7d8494', b: '#e8ebf0', spark: '#e5524d', flash: '#ffffff', logoBlue: '#2a66c8', logoRed: '#d8433f', duo: 0, size: 1, additive: true },
+        // CI 블랙 바탕: 레드와 블루가 화면 가로로 섞이는 빛
+        duo: { a: '#3d7be0', b: '#e5524d', spark: '#ffffff', flash: '#ffffff', logoBlue: '#2a66c8', logoRed: '#d8433f', duo: 1, size: 1, additive: true },
+        // 밝은 종이 바탕: CI 원색 그대로(먹색 입자 + 레드 반짝이), 일반 합성
+        paper: { a: '#1b161c', b: '#4f4954', spark: '#c23737', flash: '#c23737', logoBlue: '#0a4ca0', logoRed: '#c23737', duo: 0, size: 1.25, additive: false },
+      };
+      const pal = PALETTE[section.dataset.theme ?? 'navy'] ?? PALETTE.navy;
+
       const U = {
         uTime: { value: 0 },
         uIntro: { value: 0 },
@@ -470,12 +505,16 @@ const stackMask = url('/brand/logo-stack-mask.svg');
         uWaveDrop: { value: 3.54 }, // 물결이 내려가는 거리(월드) — 화면 88% 높이
         uChipScale: { value: 1 },
         uChipShift: { value: 0 },
-        uBlue: { value: new THREE.Color('#3b82f6') },
-        uCyan: { value: new THREE.Color('#22d3ee') },
-        uGold: { value: new THREE.Color('#c9a961') },
+        // 1~3막 바탕 입자 두 색 + 반짝이 — 테마별 (위 PALETTE)
+        uBlue: { value: new THREE.Color(pal.a) },
+        uCyan: { value: new THREE.Color(pal.b) },
+        uGold: { value: new THREE.Color(pal.spark) },
+        uFlash: { value: new THREE.Color(pal.flash) },
+        uDuo: { value: pal.duo },
+        uSizeK: { value: pal.size },
         // 4~5막: 실제 로고 색 (어두운 배경에서 또렷하도록 밝기만 올린 CI 레드·블루)
-        uLogoBlue: { value: new THREE.Color('#6a9ff0') },
-        uLogoRed: { value: new THREE.Color('#ee6560') },
+        uLogoBlue: { value: new THREE.Color(pal.logoBlue) },
+        uLogoRed: { value: new THREE.Color(pal.logoRed) },
       };
       let logoReady = false;
 
@@ -483,7 +522,7 @@ const stackMask = url('/brand/logo-stack-mask.svg');
         uniforms: U,
         transparent: true,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
+        blending: pal.additive ? THREE.AdditiveBlending : THREE.NormalBlending,
         vertexShader: /* glsl */ `
           attribute vec3 aCore;
           attribute vec3 aChip;
@@ -492,8 +531,8 @@ const stackMask = url('/brand/logo-stack-mask.svg');
           attribute float aKind;
           attribute float aToneLogo;
           uniform float uTime, uIntro, uCore, uChip, uLogo, uWave, uPR;
-          uniform float uLogoScale, uLogoLift, uWaveDrop, uChipScale, uChipShift;
-          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip;
+          uniform float uLogoScale, uLogoLift, uWaveDrop, uChipScale, uChipShift, uSizeK;
+          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip, vX;
           float ease(float t){ return t * t * (3.0 - 2.0 * t); }
           void main(){
             vec3 scatter = position + vec3(sin(aSeed * 91.0), cos(aSeed * 67.0), sin(aSeed * 53.0)) * 6.5;
@@ -525,6 +564,7 @@ const stackMask = url('/brand/logo-stack-mask.svg');
 
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             vDepth = -mv.z;
+            vX = p.x;
             vKind = aKind;
             vStage = m2;
             vChip = mc * (1.0 - m2);
@@ -534,13 +574,14 @@ const stackMask = url('/brand/logo-stack-mask.svg');
             float pulse = pow(max(0.0, sin(length(aChip.xy) * 9.0 - uTime * 3.2)), 14.0) * vChip;
             vSpark = pow(max(0.0, sin(phase)), 10.0) * m3 + pulse;
 
-            gl_PointSize = ((aKind > 0.5 ? 3.1 : 1.8) + m2 * 0.95 + vSpark * 2.2) * uPR * (10.0 / vDepth);
+            gl_PointSize = ((aKind > 0.5 ? 3.1 : 1.8) + m2 * 0.95 + vSpark * 2.2) * uSizeK * uPR * (10.0 / vDepth);
             gl_Position = projectionMatrix * mv;
           }
         `,
         fragmentShader: /* glsl */ `
-          uniform vec3 uBlue, uCyan, uGold, uLogoBlue, uLogoRed;
-          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip;
+          uniform vec3 uBlue, uCyan, uGold, uLogoBlue, uLogoRed, uFlash;
+          uniform float uDuo;
+          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip, vX;
           void main(){
             vec2 c = gl_PointCoord - 0.5;
             float r = length(c);
@@ -548,10 +589,11 @@ const stackMask = url('/brand/logo-stack-mask.svg');
             float a = smoothstep(0.5, 0.04, r);
 
             vec3 base = mix(uBlue, uCyan, 0.18 + 0.82 * smoothstep(0.0, 1.0, vGlow));
+            base = mix(base, mix(uBlue, uCyan, smoothstep(-2.6, 2.6, vX)), uDuo);
             if (vKind > 0.5) base = uGold;
             vec3 logoCol = mix(uLogoBlue, uLogoRed, vToneLogo);
             vec3 col = mix(base, logoCol, vStage);
-            col = mix(col, vec3(1.0), clamp(vSpark, 0.0, 1.0) * 0.85);
+            col = mix(col, uFlash, clamp(vSpark, 0.0, 1.0) * 0.85);
 
             float alpha = a * (0.86 + 0.14 * vStage + vSpark * 0.4) * smoothstep(17.0, 6.0, vDepth);
             gl_FragColor = vec4(col, alpha);

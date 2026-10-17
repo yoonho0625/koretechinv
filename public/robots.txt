@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /design
 
 Sitemap: https://koretechinv.yoonho-3fa.workers.dev/sitemap-index.xml

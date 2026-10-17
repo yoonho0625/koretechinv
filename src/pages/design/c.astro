@@ -1,0 +1,238 @@
+---
+/**
+ * 시안 C — DUOTONE SIGNAL
+ * 전 구간 CI 블랙 바탕. CI 레드→블루를 하나의 신호(그라데이션)로 묶어 숫자·선·테두리에만 흘린다.
+ * 유리 카드 + 마우스 스포트라이트, 스크롤로 채워지는 세로 타임라인.
+ */
+import Base from '../../layouts/Base.astro';
+import HeroJourney from '../../components/HeroJourney.astro';
+import MapBlock from '../../components/MapBlock.astro';
+import { COMPANY, PROCESS, SECTORS, SERVICES } from '../../lib/site';
+import { loadHome } from '../../lib/home';
+import { fmtDate } from '../../lib/server';
+
+export const prerender = false;
+const { notices, portfolio } = await loadHome(Astro.locals);
+---
+
+<Base title="시안 C · DUOTONE SIGNAL" kt="duo" transparentHeader noindex>
+  <HeroJourney theme="duo" />
+
+  <div class="dt" data-dark>
+    <!-- 신호 숫자 -->
+    <section class="wrap stats">
+      <p class="kick"><i></i>KoreTech at a glance</p>
+      <h2 class="stats__h">기술을 읽는 눈,<br /><span class="grad">사업으로 잇는 손.</span></h2>
+      <div class="stats__row">
+        <div class="stat"><p class="stat__v num grad">2026</p><p class="stat__k">설립 · 06.05</p></div>
+        <div class="stat"><p class="stat__v num grad">3</p><p class="stat__k">투자 방식 · 지분 · 융자 · 지도</p></div>
+        <div class="stat"><p class="stat__v num grad">5</p><p class="stat__k">단계 투자 프로세스</p></div>
+        <div class="stat"><p class="stat__v num grad">{SECTORS.length}</p><p class="stat__k">관심 기술 분야</p></div>
+      </div>
+    </section>
+
+    <!-- 업무영역: 유리 카드 -->
+    <section class="wrap sec">
+      <div class="sec__head">
+        <p class="kick"><i></i>Business area</p>
+        <h2>업무영역</h2>
+      </div>
+      <div class="glass-grid" data-spot>
+        {SERVICES.map((s, i) => (
+          <article class="glass">
+            <span class="glass__no num">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{s.title}</h3>
+            <em>{s.en}</em>
+            <p>{s.desc}</p>
+            <ul>{s.items.map((it) => <li>{it}</li>)}</ul>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- 프로세스: 세로 타임라인 -->
+    <section class="wrap sec tl" data-tl>
+      <div class="tl__aside">
+        <p class="kick"><i></i>Investment process</p>
+        <h2>발굴부터 사후관리까지,<br />다섯 단계.</h2>
+        <p class="tl__lead">정해진 절차와 투자심의위원회의 의결로 모든 투자를 투명하게 결정합니다.</p>
+      </div>
+      <ol class="tl__list">
+        <span class="tl__rail" aria-hidden="true"><span class="tl__fill"></span></span>
+        {PROCESS.map((p) => (
+          <li class="tl__item">
+            <span class="tl__dot" aria-hidden="true"></span>
+            <p class="tl__step num">{p.step}<small>{p.en}</small></p>
+            <h3>{p.title}</h3>
+            <p>{p.desc}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- 관심 분야 -->
+    <section class="wrap sec">
+      <div class="sec__head">
+        <p class="kick"><i></i>Focus sectors</p>
+        <h2>우리가 보는 기술</h2>
+      </div>
+      <p class="chips">{SECTORS.map((s) => <span>{s}</span>)}</p>
+    </section>
+
+    <!-- 포트폴리오 · 공지 -->
+    <section class="wrap sec duo">
+      <article class="panel">
+        <div class="panel__head"><h2>포트폴리오</h2><a href="/portfolio">전체보기 →</a></div>
+        {portfolio.length === 0 ? (
+          <p class="panel__empty">투자 기업이 확정되는 대로 이곳에 공개됩니다.</p>
+        ) : (
+          <ul class="rows">{portfolio.map((p) => <li><a href={`/portfolio/${p.id}`}><span>{p.company}</span><em>{p.sector}</em></a></li>)}</ul>
+        )}
+      </article>
+      <article class="panel">
+        <div class="panel__head"><h2>공지사항</h2><a href="/notice">전체보기 →</a></div>
+        {notices.length === 0 ? (
+          <p class="panel__empty">등록된 공지가 없습니다.</p>
+        ) : (
+          <ul class="rows">{notices.map((n) => <li><a href={`/notice/${n.id}`}><span>{n.title}</span><em class="num">{fmtDate(n.post_date)}</em></a></li>)}</ul>
+        )}
+      </article>
+    </section>
+
+    <!-- 오시는 길 -->
+    <section class="wrap sec contact">
+      <div>
+        <p class="kick"><i></i>Contact</p>
+        <h2>함께 성장할 기업을<br /><span class="grad">기다립니다.</span></h2>
+        <dl>
+          <div><dt>주소</dt><dd>{COMPANY.address}</dd></div>
+          <div><dt>전화</dt><dd class="num"><a href={`tel:${COMPANY.tel.replace(/-/g, '')}`}>{COMPANY.tel}</a></dd></div>
+          <div><dt>팩스</dt><dd class="num">{COMPANY.fax}</dd></div>
+          <div><dt>메일</dt><dd><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></dd></div>
+        </dl>
+      </div>
+      <div class="contact__map"><MapBlock dark /></div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  // 유리 카드 스포트라이트 — 마우스 위치를 CSS 변수로
+  document.querySelectorAll<HTMLElement>('[data-spot] .glass').forEach((el) => {
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+    });
+  });
+  // 타임라인 채움 — 화면 중앙선을 지난 만큼
+  const tl = document.querySelector<HTMLElement>('[data-tl] .tl__list');
+  if (tl) {
+    const items = [...tl.querySelectorAll<HTMLElement>('.tl__item')];
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = tl.getBoundingClientRect();
+      const mid = innerHeight * 0.6;
+      const p = Math.min(1, Math.max(0, (mid - r.top) / r.height));
+      tl.style.setProperty('--p', p.toFixed(4));
+      items.forEach((it) => it.classList.toggle('is-on', it.getBoundingClientRect().top < mid));
+    };
+    addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
+    addEventListener('resize', update);
+    update();
+  }
+</script>
+
+<style>
+  .dt { --ink: #1b161c; --fg: #f4f1ec; --mute: rgba(244, 241, 236, 0.62); --line: rgba(244, 241, 236, 0.1); --sig: linear-gradient(100deg, #e5524d 0%, #c23737 30%, #2a6bc9 75%, #0a4ca0 100%);
+    position: relative; background: var(--ink); color: var(--fg); padding-bottom: clamp(90px, 11vw, 150px); overflow: hidden; }
+  .dt::before { content: ''; position: absolute; inset: 0 0 auto; height: 900px; pointer-events: none;
+    background: radial-gradient(600px 400px at 85% 10%, rgba(10, 76, 160, 0.22), transparent 70%), radial-gradient(500px 360px at 10% 30%, rgba(194, 55, 55, 0.16), transparent 70%); }
+  .wrap { position: relative; max-width: 1280px; }
+  .grad { background: var(--sig); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .kick { display: inline-flex; align-items: center; gap: 10px; font-family: Sora, Pretendard, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
+  .kick i { width: 22px; height: 2px; border-radius: 2px; background: var(--sig); }
+  .sec { padding-top: clamp(100px, 12vw, 170px); }
+  .sec__head h2, .tl__aside h2, .contact h2 { margin-top: 14px; font-size: clamp(2.25rem, 4.6vw, 3.75rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.05em; }
+
+  /* 숫자 */
+  .stats { padding-top: clamp(110px, 13vw, 180px); }
+  .stats__h { margin-top: 18px; font-size: clamp(2.75rem, 6.4vw, 5.5rem); font-weight: 800; line-height: 1.05; letter-spacing: -0.06em; }
+  .stats__row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: clamp(50px, 6vw, 80px); border-top: 1px solid var(--line); }
+  .stat { padding: 30px 24px 0 0; }
+  .stat + .stat { padding-left: 24px; border-left: 1px solid var(--line); }
+  .stat__v { font-family: Sora, Pretendard, sans-serif; font-size: clamp(3rem, 6vw, 5rem); font-weight: 800; letter-spacing: -0.05em; line-height: 1; display: inline-block; }
+  .stat__k { margin-top: 12px; font-size: 1rem; color: var(--mute); }
+
+  /* 유리 카드 */
+  .glass-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+  .glass { --mx: 50%; --my: 0%; position: relative; isolation: isolate; padding: 34px 30px 32px; border-radius: 26px; background: rgba(244, 241, 236, 0.035); backdrop-filter: blur(14px); overflow: hidden; transition: transform 0.4s var(--ease-out); }
+  .glass::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(140deg, rgba(229, 82, 77, 0.7), rgba(244, 241, 236, 0.08) 40%, rgba(244, 241, 236, 0.08) 60%, rgba(42, 107, 201, 0.7)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; }
+  .glass::after { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity 0.4s; background: radial-gradient(380px circle at var(--mx) var(--my), rgba(244, 241, 236, 0.1), transparent 60%); }
+  .glass:hover { transform: translateY(-6px); }
+  .glass:hover::after { opacity: 1; }
+  .glass__no { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; font-family: Sora, Pretendard, sans-serif; font-weight: 800; background: var(--sig); color: #fff; }
+  .glass h3 { margin-top: 26px; font-size: 1.875rem; font-weight: 800; letter-spacing: -0.04em; }
+  .glass em { font-style: normal; font-family: Sora, Pretendard, sans-serif; font-size: 0.875rem; color: var(--mute); }
+  .glass p { margin-top: 18px; font-size: 1rem; line-height: 1.75; color: rgba(244, 241, 236, 0.76); }
+  .glass ul { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 9px; }
+  .glass li { position: relative; padding-left: 18px; font-size: 0.9375rem; font-weight: 600; }
+  .glass li::before { content: ''; position: absolute; left: 0; top: 0.62em; width: 8px; height: 2px; background: var(--sig); }
+
+  /* 타임라인 */
+  .tl { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(40px, 7vw, 110px); align-items: start; }
+  .tl__aside { position: sticky; top: 120px; }
+  .tl__lead { margin-top: 20px; font-size: 1.0625rem; line-height: 1.75; color: var(--mute); max-width: 34ch; }
+  .tl__list { --p: 0; position: relative; list-style: none; margin: 0; padding: 0 0 0 46px; }
+  .tl__rail { position: absolute; left: 11px; top: 8px; bottom: 8px; width: 2px; background: var(--line); border-radius: 2px; }
+  .tl__fill { position: absolute; inset: 0; transform-origin: top; transform: scaleY(var(--p)); background: linear-gradient(180deg, #e5524d, #0a4ca0); border-radius: 2px; }
+  .tl__item { position: relative; padding: 0 0 52px; opacity: 0.38; transition: opacity 0.5s var(--ease-out); }
+  .tl__item:last-child { padding-bottom: 0; }
+  .tl__item.is-on { opacity: 1; }
+  .tl__dot { position: absolute; left: -42px; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); border: 2px solid rgba(244, 241, 236, 0.3); transition: border-color 0.4s, box-shadow 0.4s; }
+  .tl__item.is-on .tl__dot { border-color: #e5524d; box-shadow: 0 0 0 6px rgba(229, 82, 77, 0.16); }
+  .tl__step { font-family: Sora, Pretendard, sans-serif; font-size: 0.9375rem; font-weight: 700; color: #e5524d; }
+  .tl__step small { margin-left: 12px; font-size: 0.8125rem; font-weight: 500; color: var(--mute); letter-spacing: 0.04em; }
+  .tl__item h3 { margin-top: 8px; font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 800; letter-spacing: -0.04em; }
+  .tl__item p:last-child { margin-top: 8px; font-size: 1rem; line-height: 1.7; color: rgba(244, 241, 236, 0.72); }
+
+  /* 분야 */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px; }
+  .chips span { padding: 12px 20px; border-radius: 999px; border: 1px solid rgba(244, 241, 236, 0.16); font-size: 1rem; font-weight: 600; transition: background 0.3s, border-color 0.3s; }
+  .chips span:hover { background: rgba(244, 241, 236, 0.06); border-color: rgba(229, 82, 77, 0.6); }
+
+  /* 패널 */
+  .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .panel { padding: 32px; border-radius: 26px; background: rgba(244, 241, 236, 0.035); border: 1px solid var(--line); }
+  .panel__head { display: flex; align-items: baseline; justify-content: space-between; }
+  .panel__head h2 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.04em; }
+  .panel__head a { color: var(--fg); font-weight: 700; font-size: 0.9375rem; text-decoration: none; }
+  .panel__head a:hover { color: #e5524d; }
+  .panel__empty { margin-top: 24px; padding: 34px; border-radius: 18px; border: 1px dashed rgba(244, 241, 236, 0.16); color: var(--mute); text-align: center; }
+  .rows { list-style: none; margin: 16px 0 0; padding: 0; }
+  .rows a { display: flex; justify-content: space-between; gap: 16px; padding: 18px 2px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; font-weight: 600; }
+  .rows a:hover span { color: #e5524d; }
+  .rows em { font-style: normal; font-weight: 400; color: var(--mute); white-space: nowrap; }
+
+  /* 연락 */
+  .contact { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(30px, 5vw, 70px); align-items: center; }
+  .contact dl { margin: 34px 0 0; }
+  .contact dl > div { display: grid; grid-template-columns: 64px minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--line); }
+  .contact dt { font-weight: 700; color: var(--mute); font-size: 0.9375rem; }
+  .contact dd { margin: 0; }
+  .contact dd a { color: inherit; text-decoration: none; }
+  .contact__map { border-radius: 26px; overflow: hidden; }
+
+  @media (max-width: 960px) {
+    .stats__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+    .stat:nth-child(n + 3) { border-top: 1px solid var(--line); margin-top: 24px; }
+    .glass-grid, .duo, .tl, .contact { grid-template-columns: 1fr; }
+    .tl__aside { position: static; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tl__item { opacity: 1; }
+    .tl__fill { transform: none; }
+  }
+</style>

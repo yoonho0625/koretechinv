@@ -82,6 +82,8 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     backdrop-filter: blur(18px) saturate(140%);
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
+  /* CI 블랙 시안(data-kt)에서는 어두운 유리도 CI 블랙 */
+  :global(html[data-kt]) .hd--over.is-stuck:not(.is-light) { background: rgba(27, 22, 28, 0.8); }
   /* 히어로를 지나 밝은 본문 위로 오면 밝은 유리로 바꾼다 */
   .hd--over.is-light {
     background: rgba(255, 255, 255, 0.96);
@@ -227,8 +229,8 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     window.addEventListener('scroll', onScroll, { passive: true });
 
     // 헤더 바로 아래에 어두운 구역이 있으면 어두운 유리, 아니면 밝은 유리로 바꾼다
-    const darkZones = Array.from(document.querySelectorAll<HTMLElement>('[data-hero], .dark-bg'));
-    if (darkZones.length) {
+    const darkZones = Array.from(document.querySelectorAll<HTMLElement>('[data-hero]:not([data-tone="light"]), .dark-bg, [data-dark]'));
+    {
       const LINE = 72; // 헤더 높이
       const syncTone = () => {
         const overDark = darkZones.some((el) => {

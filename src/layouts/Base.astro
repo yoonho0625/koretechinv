@@ -9,12 +9,18 @@ interface Props {
   description?: string;
   /** 히어로가 있는 메인은 헤더가 화면 위에 겹쳐 뜬다. */
   transparentHeader?: boolean;
+  /** 색 테마 — 시안 페이지에서만 쓴다 (ink · paper · duo). 없으면 기존 */
+  kt?: 'ink' | 'paper' | 'duo';
+  /** 검색 결과에 안 나오게 (시안·미리보기 페이지) */
+  noindex?: boolean;
 }
 
 const {
   title,
   description = `${COMPANY.nameKoShort}는 신기술사업자 및 벤처기업에 대한 투자·융자와 경영 및 기술의 지도를 전문으로 하는 신기술사업금융회사입니다.`,
   transparentHeader = false,
+  kt,
+  noindex = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} | KoreTech Investment` : 'KoreTech Investment | 코어테크인베스트먼트';
@@ -23,13 +29,14 @@ const ogImage = new URL(url('/brand/og-image.png'), Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-kt={kt}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KoreTech Investment" />

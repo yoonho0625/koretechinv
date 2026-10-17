@@ -73,6 +73,33 @@
   color-scheme: light;
 }
 
+/* ---------- 시안 테마 (CI 블랙 우선) ---------- */
+[data-kt='ink'],
+[data-kt='duo'] {
+  --ground: #1b161c;
+  --ground-2: #241e26;
+  --ink: #1b161c;
+  --canvas: #f4f1ee;
+  --surface: #ebe7e3;
+  --surface-2: #e1dcd7;
+  --line: #ddd6d0;
+  --line-2: #c9c0b9;
+  --muted: #5f5658;
+  --muted-2: #8a8083;
+  --blue-lift: #c9ced8;
+}
+[data-kt='duo'] { --blue-lift: #6f9ff0; --cyan-lift: #e5524d; }
+[data-kt='paper'] {
+  --ground: #1b161c;
+  --ink: #1b161c;
+  --canvas: #f4f1ec;
+  --surface: #ece8e2;
+  --line: #ddd7cf;
+  --line-2: #c8c0b6;
+  --muted: #5f5658;
+  --muted-2: #8a8083;
+}
+
 *,
 *::before,
 *::after { box-sizing: border-box; }

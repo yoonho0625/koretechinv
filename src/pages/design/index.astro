@@ -1,0 +1,45 @@
+---
+/** 리뉴얼 시안 목록 — 고객 검토용(검색 제외) */
+import Base from '../../layouts/Base.astro';
+
+const DRAFTS = [
+  { href: '/design/a', key: 'A', name: 'INK MONOLITH', ground: '#1b161c', fg: '#f4f1ee', note: 'CI 블랙을 바탕 그 자체로. 큰 활자의 선언문, 외곽선 활자 띠, 흑백이 반전되는 업무 행. 레드·블루는 점 하나 크기로만.' },
+  { href: '/design/b', key: 'B', name: 'PAPER & INK', ground: '#f4f1ec', fg: '#1b161c', note: '밝은 종이 위에 CI 원형 그대로. 둥근 벤토 타일, 검은 헤더 카드, 검은 패널의 프로세스. 첫 화면도 밝게.' },
+  { href: '/design/c', key: 'C', name: 'DUOTONE SIGNAL', ground: '#1b161c', fg: '#f4f1ec', note: 'CI 블랙 바탕에 레드→블루를 하나의 신호로. 유리 카드와 스포트라이트, 스크롤로 채워지는 세로 타임라인.' },
+];
+---
+
+<Base title="리뉴얼 시안" noindex>
+  <section class="dx">
+    <div class="wrap">
+      <p class="dx__k">KoreTech Investment · Renewal drafts</p>
+      <h1>CI 블랙 중심 리뉴얼 시안 3종</h1>
+      <p class="dx__lead">세 시안 모두 실제 데이터(공지·포트폴리오)와 지도로 동작합니다. 첫 화면 연출은 시안별 색으로 바뀝니다.</p>
+      <div class="dx__grid">
+        {DRAFTS.map((d) => (
+          <a class="dx__card" href={d.href} style={`--g:${d.ground};--f:${d.fg}`}>
+            <span class="dx__tag">시안 {d.key}</span>
+            <span class="dx__name">{d.name}</span>
+            <span class="dx__note">{d.note}</span>
+            <span class="dx__go">열어 보기 →</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dx { padding: clamp(130px, 14vw, 180px) 0 clamp(80px, 10vw, 120px); background: #f4f1ec; color: #1b161c; }
+  .dx__k { font-family: Sora, Pretendard, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #6b6264; }
+  h1 { margin-top: 14px; font-size: clamp(2.25rem, 5vw, 3.75rem); font-weight: 800; letter-spacing: -0.05em; }
+  .dx__lead { margin-top: 14px; font-size: 1.0625rem; color: #4a4245; }
+  .dx__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 44px; }
+  .dx__card { display: flex; flex-direction: column; gap: 14px; min-height: 340px; padding: 32px; border-radius: 26px; background: var(--g); color: var(--f); text-decoration: none; box-shadow: 0 0 0 1px rgba(27, 22, 28, 0.1); transition: transform 0.35s var(--ease-out); }
+  .dx__card:hover { transform: translateY(-6px); }
+  .dx__tag { font-weight: 700; color: #c23737; }
+  .dx__name { font-family: Sora, Pretendard, sans-serif; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em; }
+  .dx__note { flex: 1; font-size: 1rem; line-height: 1.7; opacity: 0.78; }
+  .dx__go { font-weight: 700; }
+  @media (max-width: 900px) { .dx__grid { grid-template-columns: 1fr; } .dx__card { min-height: 0; } }
+</style>
