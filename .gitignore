@@ -5,3 +5,5 @@ dist/
 Thumbs.db
 .dev.vars
 .wrangler/
+.deploy.env
+data/

@@ -6,8 +6,16 @@ import { SESSION_COOKIE, readSession } from './lib/server';
  *  - /admin/* 는 로그인 세션이 있어야 들어간다 (/admin/login 제외)
  *  - 관리자 응답은 캐시·검색·프레임 삽입을 막는다
  */
+declare const __KT_TARGET__: 'node' | 'cloudflare';
+
 export const onRequest = defineMiddleware(async (ctx, next) => {
   if (ctx.isPrerendered) return next();
+
+  // 국내 VPS(Node) 실행 — Cloudflare 와 같은 모양의 env 를 꽂아 준다
+  if (__KT_TARGET__ === 'node' && !ctx.locals.runtime?.env?.DB) {
+    const { nodeEnv } = await import('./lib/node-env');
+    (ctx.locals as { runtime: unknown }).runtime = { env: nodeEnv() };
+  }
 
   const path = ctx.url.pathname.replace(/\/+$/, '') || '/';
   const isAdmin = path === '/admin' || path.startsWith('/admin/');

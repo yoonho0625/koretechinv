@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
-const B = 'https://koretechinv.yoonho-3fa.workers.dev';
-const line = readFileSync('D:/PJT 개발 산출물 백업/코어테크 KoreTech/관리자계정_비밀번호.txt','utf8').split('\n').filter(l=>l.includes('아이디: zoopiter')).pop();
+// 사용: KT_BASE=<주소> KT_PWFILE=<비밀번호 파일> node scripts/e2e.mjs
+const B = process.env.KT_BASE ?? 'https://koretechinv.yoonho-3fa.workers.dev';
+const line = readFileSync(process.env.KT_PWFILE ?? 'D:/PJT 개발 산출물 백업/코어테크 KoreTech/관리자계정_비밀번호.txt','utf8').split('\n').filter(l=>l.includes('아이디: zoopiter')).pop();
 const pw = line.split('비밀번호: ')[1].trim();
 const H = { Origin: B };
 const out = [];

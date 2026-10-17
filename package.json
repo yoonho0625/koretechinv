@@ -7,20 +7,27 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "deploy": "astro build && wrangler deploy",
-    "db:migrate": "wrangler d1 migrations apply koretech-db --remote"
+    "deploy": "bash scripts/deploy-vps.sh",
+    "db:migrate": "wrangler d1 migrations apply koretech-db --remote",
+    "start": "node ./dist/server/entry.mjs",
+    "build:cf": "cross-env KT_TARGET=cloudflare astro build",
+    "deploy:cf": "cross-env KT_TARGET=cloudflare astro build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/node": "^9.5.5",
     "@astrojs/sitemap": "^3.6.0",
     "astro": "^5.14.1",
+    "better-sqlite3": "^12.11.1",
     "marked": "^15.0.12",
     "three": "^0.185.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@cloudflare/workers-types": "^5.20261016.1",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/three": "^0.185.4",
+    "cross-env": "^10.1.0",
     "puppeteer-core": "^23.11.1",
     "typescript": "^5.9.3",
     "wrangler": "^4.151.1"
