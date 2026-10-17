@@ -1,110 +1,46 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
-import { COMPANY, url } from '../lib/site';
+import MapBlock from '../components/MapBlock.astro';
+import { COMPANY } from '../lib/site';
+
+// 2026-10 미팅: 개인정보 수집 책임 문제로 문의 양식은 두지 않는다 — 연락처와 지도만 안내한다.
+const ROWS = [
+  { k: '주소', v: COMPANY.address },
+  { k: '전화', v: COMPANY.tel, href: `tel:${COMPANY.tel.replace(/-/g, '')}` },
+  { k: '팩스', v: COMPANY.fax },
+  { k: '이메일', v: COMPANY.email, href: `mailto:${COMPANY.email}` },
+];
 ---
 
-<Base title="Contact" description={`${COMPANY.nameKoShort} 오시는 길과 투자 문의 안내입니다.`}>
+<Base title="오시는 길" description={`${COMPANY.nameKoShort} 오시는 길과 연락처 안내입니다.`}>
   <PageHero
     en="Contact"
-    title="문의하기"
-    desc="투자 검토를 원하시면 사업계획서와 함께 연락처를 남겨주세요. 담당자가 확인 후 회신드립니다."
+    title="오시는 길"
+    desc="투자 검토를 원하시면 회사소개자료를 이메일로 보내주세요. 담당자가 확인 후 회신드립니다."
   />
 
   <section class="section">
     <div class="wrap cc">
-      <!-- 연락처 -->
-      <div class="cc__info">
-        <h2 class="h3">오시는 길</h2>
-        <dl class="cinfo">
-          <div>
-            <dt>주소</dt>
-            <dd>
-              {COMPANY.address}
-              <a class="cinfo__map" href={COMPANY.mapUrl} target="_blank" rel="noopener noreferrer">
-                네이버 지도에서 보기 ↗
-              </a>
-            </dd>
-          </div>
-          <div><dt>전화</dt><dd class="num"><a href={`tel:${COMPANY.tel.replace(/-/g, '')}`}>{COMPANY.tel}</a></dd></div>
-          <div><dt>팩스</dt><dd class="num">{COMPANY.fax}</dd></div>
-          <div><dt>이메일</dt><dd><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></dd></div>
-        </dl>
-
-        <div class="map">
-          <iframe
-            title="코어테크인베스트먼트 위치 — 서울특별시 강남구 봉은사로 306"
-            src="https://maps.google.com/maps?q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EB%B4%89%EC%9D%80%EC%82%AC%EB%A1%9C%20306&hl=ko&z=17&output=embed"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </div>
+      <div class="cc__map reveal">
+        <MapBlock />
       </div>
 
-      <!-- 문의 폼 -->
-      <div class="cc__form">
-        <h2 class="h3">투자 문의</h2>
-        <p class="form__note">
-          <span class="req">*</span> 표시는 필수 입력 항목입니다.
-        </p>
-
-        <form
-          class="form"
-          name="inquiry"
-          method="POST"
-          data-netlify="true"
-          netlify-honeypot="company-website"
-          action={url('/contact/thanks')}
-        >
-          <input type="hidden" name="form-name" value="inquiry" />
-          <p class="hp">
-            <label>이 항목은 비워두세요 <input name="company-website" tabindex="-1" autocomplete="off" /></label>
-          </p>
-
-          <div class="field">
-            <label for="f-company">회사명 <span class="req">*</span></label>
-            <input id="f-company" name="회사명" type="text" required autocomplete="organization" />
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label for="f-name">성함 <span class="req">*</span></label>
-              <input id="f-name" name="성함" type="text" required autocomplete="name" />
+      <div class="cc__info reveal" data-delay="1">
+        <p class="label">Location</p>
+        <h2 class="h2" style="margin-top:14px">{COMPANY.nameKoShort}</h2>
+        <dl class="cinfo">
+          {ROWS.map((r) => (
+            <div>
+              <dt>{r.k}</dt>
+              <dd class="num">{r.href ? <a href={r.href}>{r.v}</a> : r.v}</dd>
             </div>
-            <div class="field">
-              <label for="f-tel">연락처 <span class="req">*</span></label>
-              <input id="f-tel" name="연락처" type="tel" required autocomplete="tel" placeholder="010-0000-0000" />
-            </div>
-          </div>
-          <div class="field">
-            <label for="f-email">이메일 <span class="req">*</span></label>
-            <input id="f-email" name="이메일" type="email" required autocomplete="email" />
-          </div>
-          <div class="field">
-            <label for="f-sector">사업 분야</label>
-            <input id="f-sector" name="사업분야" type="text" placeholder="예: 반도체 장비, 바이오 진단" />
-          </div>
-          <div class="field">
-            <label for="f-msg">문의 내용 <span class="req">*</span></label>
-            <textarea id="f-msg" name="문의내용" rows="6" required
-              placeholder="사업 개요, 투자 희망 규모, 현재 단계를 적어주시면 검토가 빠릅니다."></textarea>
-          </div>
-
-          <div class="agree">
-            <input id="f-agree" name="개인정보동의" type="checkbox" required value="동의" />
-            <label for="f-agree">
-              <a href={url('/legal/privacy')} target="_blank">개인정보처리방침</a>을 확인하였으며,
-              문의 처리를 위한 개인정보 수집·이용에 동의합니다. <span class="req">*</span>
-            </label>
-          </div>
-
-          <button class="btn btn--primary form__submit" type="submit">
-            문의 보내기 <span class="arrow" aria-hidden="true">→</span>
-          </button>
-          <p class="form__hint">
-            보내주신 내용은 <span class="num">{COMPANY.email}</span> 로 전달됩니다.
-            첨부가 필요한 자료는 이메일로 보내주세요.
-          </p>
-        </form>
+          ))}
+        </dl>
+        <a class="btn btn--primary" style="margin-top:28px" href={`mailto:${COMPANY.email}?subject=${encodeURIComponent('[회사소개자료] 회사명 / 담당자')}`}>
+          회사소개자료 보내기 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <p class="cc__note">메일 앱이 열리지 않으면 {COMPANY.email} 로 직접 보내주세요.</p>
       </div>
     </div>
   </section>
@@ -113,73 +49,22 @@ import { COMPANY, url } from '../lib/site';
 <style>
   .cc {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: clamp(36px, 6vw, 80px);
-    align-items: start;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 64px);
+    align-items: center;
   }
   @media (max-width: 900px) { .cc { grid-template-columns: 1fr; } }
-
   .cinfo { margin: 26px 0 0; border-top: 2px solid var(--ink); }
-  .cinfo > div:last-child { border-bottom: 0; }
   .cinfo > div {
     display: grid;
-    grid-template-columns: 82px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr);
     gap: 16px;
-    padding: 18px 2px;
+    padding: 17px 2px;
     border-bottom: 1px solid var(--line);
   }
-  .cinfo dt { font-size: 0.8125rem; color: var(--muted-2); }
-  .cinfo dd { margin: 0; font-size: 0.9375rem; }
+  .cinfo dt { font-size: 0.9375rem; font-weight: 600; color: var(--muted-2); }
+  .cinfo dd { margin: 0; font-size: 1.0625rem; font-weight: 500; }
   .cinfo a { color: var(--blue); text-decoration: none; }
   .cinfo a:hover { text-decoration: underline; }
-  .cinfo__map { display: block; margin-top: 8px; font-size: 0.8125rem; }
-
-  .map {
-    margin-top: 26px;
-    aspect-ratio: 4 / 3;
-    border: 1px solid var(--line);
-    border-radius: var(--r);
-    overflow: hidden;
-    background: var(--surface);
-  }
-  .map iframe { width: 100%; height: 100%; border: 0; display: block; }
-
-  /* 폼 */
-  .form__note { margin: 22px 0 18px; font-size: 0.8125rem; color: var(--muted-2); }
-  .req { color: var(--red); }
-  .hp { position: absolute; left: -9999px; }
-
-  .form { display: flex; flex-direction: column; gap: 18px; }
-  .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
-
-  .field { display: flex; flex-direction: column; gap: 8px; }
-  .field label { font-size: 0.8125rem; font-weight: 500; color: var(--ink); }
-  .field input,
-  .field textarea {
-    font-family: inherit;
-    font-size: 0.9375rem;
-    color: var(--ink);
-    padding: 14px 16px;
-    border: 1px solid var(--line-2);
-    border-radius: var(--r-sm);
-    background: var(--paper);
-    transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
-  }
-  .field input:focus,
-  .field textarea:focus {
-    border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(18, 68, 157, 0.1);
-    outline-offset: 1px;
-  }
-  .field textarea { resize: vertical; line-height: 1.7; }
-  .field ::placeholder { color: var(--muted-2); }
-
-  .agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 4px; }
-  .agree input { margin-top: 4px; accent-color: var(--blue); flex: none; }
-  .agree label { font-size: 0.8125rem; color: var(--muted); line-height: 1.65; }
-  .agree a { color: var(--blue); }
-
-  .form__submit { align-self: flex-start; margin-top: 6px; border: 0; cursor: pointer; font-family: inherit; }
-  .form__hint { font-size: 0.75rem; color: var(--muted-2); line-height: 1.7; }
+  .cc__note { margin-top: 12px; font-size: 0.875rem; color: var(--muted-2); }
 </style>

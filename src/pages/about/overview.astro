@@ -1,29 +1,37 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
-import { COMPANY, url } from '../../lib/site';
+import { COMPANY } from '../../lib/site';
+
+// 기업 정보 (2026-10 미팅: 납입자본금·주주구성은 싣지 않는다)
+const INFO = [
+  { k: '회사명', v: COMPANY.nameKo, wide: true },
+  { k: '영문명', v: COMPANY.nameEn, wide: true },
+  { k: '대표이사', v: COMPANY.ceo },
+  { k: '설립일', v: COMPANY.founded },
+  { k: '업무영역', v: COMPANY.business },
+  { k: '소재지', v: COMPANY.address, wide: true },
+];
+const CONTACT = [
+  { k: 'TEL', v: COMPANY.tel, href: `tel:${COMPANY.tel.replace(/-/g, '')}` },
+  { k: 'FAX', v: COMPANY.fax },
+  { k: 'E-MAIL', v: COMPANY.email, href: `mailto:${COMPANY.email}` },
+];
 ---
 
 <Base title="회사소개" description={`${COMPANY.nameKo}(${COMPANY.nameEn})의 회사 개요와 기업 정보입니다.`}>
-  <PageHero
-    en="Overview"
-    title="회사소개"
-    group="About us"
-    desc="대한민국 핵심 기술기업의 성장 파트너, 코어테크인베스트먼트입니다."
-  />
+  <PageHero en="Overview" title="회사소개" group="About us" desc="대한민국 핵심 기술기업의 성장 파트너, 코어테크인베스트먼트입니다." />
 
   <section class="section">
-    <div class="wrap grid-editorial reveal">
-      <p class="label">About us</p>
+    <div class="wrap grid-editorial">
+      <p class="label reveal">About us</p>
       <div>
-        <h2 class="h2">
-          기술이 사업이 되는<br />모든 단계에 함께합니다.
-        </h2>
-        <p class="lead" style="margin-top:26px">
-          코어테크인베스트먼트는 신기술사업자 및 벤처기업에 대한 다양한 방법의 투자 또는 융자와
+        <h2 class="h2 reveal">기술이 사업이 되는<br />모든 단계에 함께합니다.</h2>
+        <p class="lead reveal" data-delay="1" style="margin-top:26px">
+          코어테크인베스트먼트는 유망 중소·벤처기업에 대한 투자 또는 융자와
           경영 및 기술의 지도를 전문으로 하는 투자기관입니다.
         </p>
-        <p class="measure body-muted" style="margin-top:20px">
+        <p class="measure body-muted reveal" data-delay="2" style="margin-top:20px">
           우리는 기술의 완성도만을 보지 않습니다. 그 기술이 시장에서 어떤 문제를 풀고,
           어떤 속도로 사업이 될 수 있는지를 함께 검토합니다. 투자 이후에는 경영과 기술 양쪽에서
           필요한 자원을 연결하여 기업이 다음 단계로 넘어가도록 돕습니다.
@@ -33,67 +41,77 @@ import { COMPANY, url } from '../../lib/site';
   </section>
 
   <section class="section section--tint">
-    <div class="wrap grid-editorial reveal">
-      <p class="label">Information</p>
-      <div class="table-scroll">
-        <table class="info">
-          <tbody>
-            <tr><th scope="row">회사명</th><td>{COMPANY.nameKo}</td></tr>
-            <tr><th scope="row">영문명</th><td>{COMPANY.nameEn}</td></tr>
-            <tr><th scope="row">대표이사</th><td>{COMPANY.ceo}</td></tr>
-            <tr><th scope="row">설립일</th><td class="num">{COMPANY.founded}</td></tr>
-            <tr><th scope="row">소재지</th><td>{COMPANY.address}</td></tr>
-            <tr><th scope="row">업무영역</th><td>{COMPANY.business}</td></tr>
-            <tr><th scope="row">납입자본금</th><td class="num">{COMPANY.capital}</td></tr>
-            <tr><th scope="row">주주구성</th><td>{COMPANY.shareholder}</td></tr>
-            <tr>
-              <th scope="row">연락처</th>
-              <td class="num">
-                T. {COMPANY.tel} / F. {COMPANY.fax} /
-                E. <a href={`mailto:${COMPANY.email}`} style="color:var(--blue)">{COMPANY.email}</a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="wrap grid-editorial">
+      <p class="label reveal">Information</p>
+      <div class="reveal">
+        <dl class="facts">
+          {INFO.map((r) => (
+            <div class:list={['fact', r.wide && 'fact--wide']}>
+              <dt>{r.k}</dt>
+              <dd>{r.v}</dd>
+            </div>
+          ))}
+        </dl>
+        <div class="contact-strip">
+          {CONTACT.map((c) => (
+            <div class="cs">
+              <span class="cs__k">{c.k}</span>
+              {c.href ? <a class="cs__v num" href={c.href}>{c.v}</a> : <span class="cs__v num">{c.v}</span>}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="wrap next reveal">
-      <a class="next__card" href={url('/about/philosophy')}>
-        <span class="label">Philosophy</span>
-        <strong>투자철학</strong>
-        <span class="next__arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="next__card" href={url('/about/history')}>
-        <span class="label">History</span>
-        <strong>연혁</strong>
-        <span class="next__arrow" aria-hidden="true">→</span>
-      </a>
-      <a class="next__card" href={url('/about/organization')}>
-        <span class="label">Organization</span>
-        <strong>조직도</strong>
-        <span class="next__arrow" aria-hidden="true">→</span>
-      </a>
+      <a class="next__card card-surface" href="/about/philosophy"><span class="label label--plain">Philosophy</span><strong>투자철학</strong><span class="next__arrow" aria-hidden="true">→</span></a>
+      <a class="next__card card-surface" href="/about/history"><span class="label label--plain">History</span><strong>연혁</strong><span class="next__arrow" aria-hidden="true">→</span></a>
+      <a class="next__card card-surface" href="/about/organization"><span class="label label--plain">Organization</span><strong>조직도</strong><span class="next__arrow" aria-hidden="true">→</span></a>
     </div>
   </section>
 </Base>
 
 <style>
-  .next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
-  .next__card {
-    background: var(--paper);
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    text-decoration: none;
-    position: relative;
-    transition: background 0.2s var(--ease);
+  .facts {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
   }
-  .next__card:hover { background: var(--surface); }
-  .next__card strong { font-size: 1.125rem; font-weight: 600; }
+  .fact {
+    padding: 22px 24px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+  }
+  .fact--wide { grid-column: span 3; }
+  .fact dt { font-size: 0.875rem; font-weight: 600; color: var(--muted-2); }
+  .fact dd { margin: 8px 0 0; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+  .contact-strip {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: var(--r);
+    overflow: hidden;
+    background: var(--ground);
+  }
+  .cs { display: flex; flex-direction: column; gap: 6px; padding: 22px 24px; }
+  .cs + .cs { border-left: 1px solid rgba(255, 255, 255, 0.1); }
+  .cs__k { font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.14em; color: var(--blue-lift); }
+  .cs__v { font-size: 1.125rem; font-weight: 600; color: #fff; text-decoration: none; word-break: break-all; }
+  a.cs__v:hover { text-decoration: underline; }
+  @media (max-width: 760px) {
+    .facts { grid-template-columns: 1fr; }
+    .fact--wide { grid-column: auto; }
+    .contact-strip { grid-template-columns: 1fr; }
+    .cs + .cs { border-left: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+  }
+
+  .next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .next__card { padding: 30px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; position: relative; }
+  .next__card strong { font-size: 1.25rem; font-weight: 700; }
   .next__arrow { position: absolute; right: 26px; bottom: 28px; color: var(--muted-2); transition: transform 0.2s var(--ease), color 0.2s var(--ease); }
   .next__card:hover .next__arrow { transform: translateX(4px); color: var(--blue); }
   @media (max-width: 760px) { .next { grid-template-columns: 1fr; } }

@@ -1,0 +1,69 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { envOf, fmtDate, type Notice } from '../../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60);
+const rows =
+  (
+    await env.DB.prepare(
+      `SELECT n.*, (SELECT COUNT(*) FROM files f WHERE f.owner = 'notice' AND f.owner_id = n.id) AS file_count
+         FROM notices n ${q ? 'WHERE n.title LIKE ?' : ''}
+        ORDER BY n.pinned DESC, n.post_date DESC, n.id DESC LIMIT 200`
+    )
+      .bind(...(q ? [`%${q}%`] : []))
+      .all<Notice & { file_count: number }>()
+  ).results ?? [];
+---
+
+<Admin title="공지사항" active="notices">
+  <div class="a-head">
+    <div>
+      <h1>공지사항</h1>
+      <p>경영공시·공지를 등록합니다. 한글(hwp)·PDF·워드·엑셀 파일을 첨부할 수 있습니다.</p>
+    </div>
+    <a class="a-btn a-btn--primary" href="/admin/notices/new">+ 새 공지 쓰기</a>
+  </div>
+
+  <div class="a-card">
+    <form class="search" method="get">
+      <input type="text" name="q" value={q} placeholder="제목으로 찾기" aria-label="제목 검색" />
+      <button class="a-btn a-btn--ghost" type="submit">검색</button>
+      {q && <a class="a-btn a-btn--ghost" href="/admin/notices">전체</a>}
+    </form>
+
+    {rows.length === 0 ? (
+      <p class="none">{q ? '찾는 공지가 없습니다.' : '아직 등록한 공지가 없습니다. 오른쪽 위 ‘새 공지 쓰기’를 눌러 시작하세요.'}</p>
+    ) : (
+      <div class="a-scroll">
+        <table class="a-table">
+          <thead>
+            <tr><th>제목</th><th>분류</th><th>게시일</th><th>첨부</th><th>상태</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((n) => (
+              <tr>
+                <td>
+                  {n.pinned ? <span class="pill pill--pin" style="margin-right:6px">중요</span> : null}
+                  <a class="t" href={`/admin/notices/${n.id}`}>{n.title}</a>
+                </td>
+                <td>{n.category}</td>
+                <td class="num">{fmtDate(n.post_date)}</td>
+                <td class="num">{n.file_count || '-'}</td>
+                <td>{n.published ? <span class="pill pill--on">공개</span> : <span class="pill pill--off">작성중</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</Admin>
+
+<style>
+  .search { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search input { flex: 1; font: inherit; font-size: 0.9375rem; padding: 10px 13px; border: 1px solid var(--line-2); border-radius: 10px; }
+  .none { padding: 40px 10px; text-align: center; color: var(--muted-2); }
+</style>

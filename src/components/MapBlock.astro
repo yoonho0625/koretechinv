@@ -1,0 +1,55 @@
+---
+import { COMPANY } from '../lib/site';
+interface Props { dark?: boolean }
+const { dark = false } = Astro.props;
+---
+
+<div class:list={['mapb', dark && 'mapb--dark']}>
+  <div class="mapb__frame">
+    <iframe
+      title={`${COMPANY.nameKoShort} 위치 — ${COMPANY.address}`}
+      src={COMPANY.maps.embed}
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+  <div class="mapb__links">
+    <a href={COMPANY.maps.naver} target="_blank" rel="noopener noreferrer"><i class="dot dot--naver"></i>네이버 지도</a>
+    <a href={COMPANY.maps.kakao} target="_blank" rel="noopener noreferrer"><i class="dot dot--kakao"></i>카카오맵</a>
+    <a href={COMPANY.maps.google} target="_blank" rel="noopener noreferrer"><i class="dot dot--google"></i>구글 지도</a>
+  </div>
+</div>
+
+<style>
+  .mapb__frame {
+    aspect-ratio: 16 / 11;
+    border-radius: var(--r);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .mapb--dark .mapb__frame { border-color: rgba(255, 255, 255, 0.12); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); }
+  .mapb__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .mapb__links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .mapb__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: var(--r-pill);
+    border: 1px solid var(--line-2);
+    background: var(--paper);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+  .mapb__links a:hover { border-color: var(--ink); transform: translateY(-1px); }
+  .mapb--dark .mapb__links a { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.18); color: #fff; }
+  .mapb--dark .mapb__links a:hover { border-color: #fff; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot--naver { background: #03c75a; }
+  .dot--kakao { background: #fee500; }
+  .dot--google { background: #4285f4; }
+</style>

@@ -1,0 +1,133 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { envOf, str, audit, hashPassword, newSalt, verifyPassword, PW_ITER, type AdminRow } from '../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const me = Astro.locals.admin!;
+const errors: string[] = [];
+let form = '';
+
+const strong = (pw: string) => pw.length >= 10 && /[A-Za-z]/.test(pw) && /\d/.test(pw);
+
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  form = str(fd, 'form', 20);
+
+  if (form === 'password') {
+    const cur = str(fd, 'current', 200);
+    const pw = str(fd, 'new', 200);
+    const pw2 = str(fd, 'new2', 200);
+    const row = await env.DB.prepare('SELECT * FROM admins WHERE username = ?').bind(me.username).first<AdminRow>();
+    if (!row || !(await verifyPassword(cur, row))) errors.push('지금 비밀번호가 맞지 않습니다.');
+    else if (!strong(pw)) errors.push('새 비밀번호는 10자 이상, 영문과 숫자를 함께 넣어 주세요.');
+    else if (pw !== pw2) errors.push('새 비밀번호 두 칸이 서로 다릅니다.');
+    else {
+      const salt = newSalt();
+      await env.DB.prepare('UPDATE admins SET pw_hash = ?, pw_salt = ?, pw_iter = ? WHERE id = ?')
+        .bind(await hashPassword(pw, salt, PW_ITER), salt, PW_ITER, row.id).run();
+      await audit(env.DB, me.username, 'admin.password', me.username);
+      return Astro.redirect('/admin/account?ok=password', 303);
+    }
+  }
+
+  if (form === 'add') {
+    const username = str(fd, 'username', 32).toLowerCase();
+    const name = str(fd, 'name', 40);
+    const pw = str(fd, 'password', 200);
+    if (!/^[a-z0-9._-]{4,32}$/.test(username)) errors.push('아이디는 영문 소문자·숫자 4~32자로 정해 주세요.');
+    else if (await env.DB.prepare('SELECT 1 FROM admins WHERE username = ?').bind(username).first()) errors.push('이미 있는 아이디입니다.');
+    if (!name) errors.push('이름을 입력하세요.');
+    if (!strong(pw)) errors.push('첫 비밀번호는 10자 이상, 영문과 숫자를 함께 넣어 주세요.');
+    if (errors.length === 0) {
+      const salt = newSalt();
+      await env.DB.prepare('INSERT INTO admins (username, name, pw_hash, pw_salt, pw_iter) VALUES (?, ?, ?, ?, ?)')
+        .bind(username, name, await hashPassword(pw, salt, PW_ITER), salt, PW_ITER).run();
+      await audit(env.DB, me.username, 'admin.create', username);
+      return Astro.redirect('/admin/account?ok=admin', 303);
+    }
+  }
+
+  if (form === 'remove') {
+    const uid = Number(str(fd, 'id', 10));
+    const target = await env.DB.prepare('SELECT * FROM admins WHERE id = ?').bind(uid).first<AdminRow>();
+    const count = (await env.DB.prepare('SELECT COUNT(*) AS c FROM admins').first<{ c: number }>())?.c ?? 0;
+    if (!target) errors.push('없는 계정입니다.');
+    else if (target.username === me.username) errors.push('지금 로그인한 계정은 지울 수 없습니다.');
+    else if (count <= 1) errors.push('관리자는 최소 한 명 있어야 합니다.');
+    else {
+      await env.DB.prepare('DELETE FROM admins WHERE id = ?').bind(uid).run();
+      await audit(env.DB, me.username, 'admin.delete', target.username);
+      return Astro.redirect('/admin/account?ok=removed', 303);
+    }
+  }
+}
+
+const admins = (await env.DB.prepare('SELECT id, username, name, created_at, last_login_at FROM admins ORDER BY id').all<AdminRow & { created_at: string }>()).results ?? [];
+const kst = (s: string | null) => (s ? new Date(s.replace(' ', 'T') + 'Z').toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'short', timeStyle: 'short' }) : '-');
+---
+
+<Admin title="계정 관리" active="account">
+  <div class="a-head"><div><h1>계정 관리</h1><p>관리자 계정을 추가하거나 비밀번호를 바꿉니다.</p></div></div>
+
+  {errors.length > 0 && <div class="a-err" role="alert"><ul>{errors.map((e) => <li>{e}</li>)}</ul></div>}
+
+  <div class="grid">
+    <section class="a-card">
+      <h2 class="sub">내 비밀번호 바꾸기</h2>
+      <form method="post">
+        <input type="hidden" name="form" value="password" />
+        <div class="f"><label for="cur">지금 비밀번호</label><input id="cur" name="current" type="password" autocomplete="current-password" required /></div>
+        <div class="f"><label for="n1">새 비밀번호</label><input id="n1" name="new" type="password" autocomplete="new-password" required minlength="10" /><span class="f__hint">10자 이상, 영문과 숫자를 함께</span></div>
+        <div class="f"><label for="n2">새 비밀번호 확인</label><input id="n2" name="new2" type="password" autocomplete="new-password" required minlength="10" /></div>
+        <button class="a-btn a-btn--primary" style="margin-top:20px" type="submit">바꾸기</button>
+      </form>
+    </section>
+
+    <section class="a-card">
+      <h2 class="sub">관리자 추가</h2>
+      <form method="post">
+        <input type="hidden" name="form" value="add" />
+        <div class="f"><label for="au">아이디</label><input id="au" name="username" type="text" required pattern="[a-z0-9._\-]{4,32}" autocomplete="off" /></div>
+        <div class="f"><label for="an">이름</label><input id="an" name="name" type="text" required maxlength="40" /></div>
+        <div class="f"><label for="ap">첫 비밀번호</label><input id="ap" name="password" type="password" required minlength="10" autocomplete="new-password" /><span class="f__hint">받는 분이 로그인 후 직접 바꾸도록 안내하세요</span></div>
+        <button class="a-btn a-btn--primary" style="margin-top:20px" type="submit">추가</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="a-card" style="margin-top:16px">
+    <h2 class="sub">관리자 목록</h2>
+    <div class="a-scroll">
+      <table class="a-table">
+        <thead><tr><th>아이디</th><th>이름</th><th>마지막 로그인</th><th></th></tr></thead>
+        <tbody>
+          {admins.map((a) => (
+            <tr>
+              <td>{a.username}{a.username === me.username && <span class="pill pill--on" style="margin-left:6px">나</span>}</td>
+              <td>{a.name}</td>
+              <td class="num">{kst(a.last_login_at)}</td>
+              <td style="text-align:right">
+                {a.username !== me.username && (
+                  <form method="post" onsubmit={`return confirm('${a.username} 계정을 삭제할까요?')`}>
+                    <input type="hidden" name="form" value="remove" />
+                    <input type="hidden" name="id" value={a.id} />
+                    <button class="a-btn a-btn--danger" type="submit" style="padding:7px 12px;font-size:0.8125rem">삭제</button>
+                  </form>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Admin>
+
+<style>
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .grid .a-card + .a-card { margin-top: 0; }
+  .sub { font-size: 1.0625rem; margin-bottom: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,25 @@
+{
+  // 코어테크인베스트먼트 홈페이지 — Cloudflare Workers (정적 자산 + 서버 렌더링)
+  // 배포: npm run deploy   (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID 필요)
+  "name": "koretechinv",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "html_handling": "drop-trailing-slash"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "koretech-db",
+      "database_id": "69fae195-ebd9-466c-b9e4-592d949054a3",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "FILES", "bucket_name": "koretech-files" }
+  ],
+  "observability": { "enabled": true }
+}

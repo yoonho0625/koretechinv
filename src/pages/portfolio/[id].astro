@@ -1,0 +1,48 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { envOf, notFound, renderBody, type Portfolio } from '../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const id = Number(Astro.params.id);
+const isAdmin = !!Astro.locals.admin;
+const p = Number.isInteger(id)
+  ? await env.DB.prepare(`SELECT * FROM portfolio WHERE id = ? ${isAdmin ? '' : 'AND published = 1'}`).bind(id).first<Portfolio>()
+  : null;
+if (!p) return notFound(Astro.locals, Astro.url);
+const body = renderBody(p.body);
+Astro.response.headers.set('Cache-Control', isAdmin ? 'no-store' : 'public, max-age=60, s-maxage=60');
+---
+
+<Base title={p.company} description={p.summary || `${p.company} — ${p.sector}`}>
+  <PageHero en="Portfolio" title={p.company} desc={p.summary || undefined} />
+
+  <section class="section">
+    <div class="wrap grid-editorial">
+      <aside class="meta">
+        {p.logo_file_id && <img class="meta__logo" src={`/files/${p.logo_file_id}/logo`} alt={p.company} />}
+        <dl class="meta__dl">
+          {p.sector && <div><dt>분야</dt><dd>{p.sector}</dd></div>}
+          {p.stage && <div><dt>단계</dt><dd>{p.stage}</dd></div>}
+          {p.invest_year && <div><dt>투자연도</dt><dd class="num">{p.invest_year}</dd></div>}
+          {p.website && <div><dt>홈페이지</dt><dd><a href={p.website} target="_blank" rel="noopener noreferrer">바로가기 ↗</a></dd></div>}
+        </dl>
+      </aside>
+      <div class="prose" set:html={body || '<p style="color:var(--muted-2)">상세 소개를 준비하고 있습니다.</p>'} />
+    </div>
+    <div class="wrap" style="margin-top:56px">
+      <a class="btn btn--ghost" href="/portfolio">← 포트폴리오 목록</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .meta__logo { max-width: 180px; margin-bottom: 24px; }
+  .meta__dl { margin: 0; border-top: 2px solid var(--ink); }
+  .meta__dl > div { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 12px; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+  .meta__dl dt { font-size: 0.875rem; color: var(--muted-2); }
+  .meta__dl dd { margin: 0; font-size: 0.9375rem; font-weight: 500; }
+  .meta__dl a { color: var(--blue); text-decoration: none; }
+</style>

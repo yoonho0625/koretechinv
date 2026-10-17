@@ -1,0 +1,193 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  /** 왼쪽 메뉴에서 켜 둘 항목 */
+  active?: 'home' | 'notices' | 'portfolio' | 'account';
+  bare?: boolean;
+}
+const { title, active, bare = false } = Astro.props;
+const admin = Astro.locals.admin;
+const flash = Astro.url.searchParams.get('ok');
+const FLASH: Record<string, string> = {
+  saved: '저장했습니다.',
+  deleted: '삭제했습니다.',
+  created: '등록했습니다.',
+  password: '비밀번호를 바꿨습니다.',
+  admin: '관리자를 추가했습니다.',
+  removed: '관리자를 삭제했습니다.',
+};
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} | KoreTech 관리자</title>
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" />
+  </head>
+  <body class:list={['adm', bare && 'adm--bare']}>
+    {bare ? (
+      <slot />
+    ) : (
+      <div class="adm__shell">
+        <aside class="side">
+          <a class="side__logo" href="/admin"><img src="/brand/logo-line-dark.svg" alt="KoreTech Investment" /></a>
+          <p class="side__tag">홈페이지 관리</p>
+          <nav class="side__nav" aria-label="관리 메뉴">
+            <a class:list={[active === 'home' && 'is-on']} href="/admin">대시보드</a>
+            <a class:list={[active === 'notices' && 'is-on']} href="/admin/notices">공지사항</a>
+            <a class:list={[active === 'portfolio' && 'is-on']} href="/admin/portfolio">포트폴리오</a>
+            <a class:list={[active === 'account' && 'is-on']} href="/admin/account">계정 관리</a>
+          </nav>
+          <div class="side__foot">
+            <a class="side__site" href="/" target="_blank" rel="noopener">홈페이지 열기 ↗</a>
+            <p class="side__who">{admin?.name || admin?.username}</p>
+            <form method="post" action="/admin/logout">
+              <button class="side__out" type="submit">로그아웃</button>
+            </form>
+          </div>
+        </aside>
+        <main class="main">
+          {flash && FLASH[flash] && <p class="toast" role="status">{FLASH[flash]}</p>}
+          <slot />
+        </main>
+      </div>
+    )}
+  </body>
+</html>
+
+<style is:global>
+  body.adm { background: #f3f4f7; }
+  .adm__shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+  .side {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 26px 18px 22px;
+    background: var(--ground);
+    color: #fff;
+  }
+  .side__logo img { width: 190px; }
+  .side__tag { margin: 10px 4px 26px; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.5); }
+  .side__nav { display: flex; flex-direction: column; gap: 4px; }
+  .side__nav a {
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+  }
+  .side__nav a:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+  .side__nav a.is-on { background: rgba(79, 139, 234, 0.2); color: #fff; box-shadow: inset 3px 0 0 var(--blue-lift); }
+  .side__foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding: 0 4px; }
+  .side__site { font-size: 0.875rem; color: var(--blue-lift); text-decoration: none; }
+  .side__who { font-size: 0.875rem; color: rgba(255, 255, 255, 0.6); }
+  .side__out {
+    align-self: flex-start;
+    padding: 8px 14px;
+    border-radius: var(--r-pill);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: #fff;
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  .side__out:hover { background: rgba(255, 255, 255, 0.1); }
+
+  .main { padding: clamp(24px, 4vw, 44px); max-width: 1120px; width: 100%; }
+  .toast {
+    margin-bottom: 18px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: #e8f6ee;
+    border: 1px solid #b9e3c9;
+    color: #1f6b3e;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+
+  /* 공통 부품 */
+  .a-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .a-head h1 { font-size: 1.75rem; letter-spacing: -0.03em; }
+  .a-head p { margin-top: 6px; color: var(--muted); font-size: 0.9375rem; }
+  .a-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03); }
+  .a-card + .a-card { margin-top: 16px; }
+  .a-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 20px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .a-btn--primary { background: var(--blue); color: #fff; }
+  .a-btn--primary:hover { background: #083f86; }
+  .a-btn--ghost { background: #fff; border-color: var(--line-2); color: var(--ink); }
+  .a-btn--ghost:hover { border-color: var(--ink); }
+  .a-btn--danger { background: #fff; border-color: #efc4c4; color: var(--red); }
+  .a-btn--danger:hover { background: #fdf1f1; }
+  .a-err { margin-bottom: 16px; padding: 12px 16px; border-radius: 10px; background: #fdf1f1; border: 1px solid #efc4c4; color: #8f2a2a; font-size: 0.9375rem; }
+  .a-err li { margin-left: 18px; }
+
+  .a-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+  .a-table th { text-align: left; font-size: 0.8125rem; font-weight: 600; color: var(--muted-2); padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .a-table td { padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  .a-table tr:last-child td { border-bottom: 0; }
+  .a-table a.t { font-weight: 600; color: var(--ink); text-decoration: none; }
+  .a-table a.t:hover { color: var(--blue); }
+  .a-scroll { overflow-x: auto; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+  .pill--on { background: #e6f4ec; color: #1f6b3e; }
+  .pill--off { background: #f1f1f4; color: #6b6b78; }
+  .pill--pin { background: var(--red-100); color: var(--red); }
+
+  .f { display: flex; flex-direction: column; gap: 7px; }
+  .f + .f { margin-top: 18px; }
+  .f > label, .f > .f__label { font-size: 0.875rem; font-weight: 700; color: var(--ink); }
+  .f__hint { font-size: 0.8125rem; color: var(--muted-2); }
+  .f input[type='text'], .f input[type='date'], .f input[type='number'], .f input[type='url'], .f input[type='password'], .f select, .f textarea {
+    font: inherit;
+    font-size: 0.9375rem;
+    padding: 11px 13px;
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    width: 100%;
+  }
+  .f textarea { min-height: 260px; resize: vertical; line-height: 1.75; }
+  .f input:focus, .f select:focus, .f textarea:focus { border-color: var(--blue); outline: 0; box-shadow: 0 0 0 3px rgba(10, 76, 160, 0.12); }
+  .f-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .f-row .f + .f { margin-top: 0; }
+  .check { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9375rem; font-weight: 600; cursor: pointer; }
+  .check input { width: 18px; height: 18px; accent-color: var(--blue); }
+
+  @media (max-width: 860px) {
+    .adm__shell { grid-template-columns: 1fr; }
+    .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 16px; }
+    .side__logo img { width: 150px; }
+    .side__tag { display: none; }
+    .side__nav { flex-direction: row; flex-wrap: wrap; width: 100%; order: 3; }
+    .side__nav a { padding: 8px 12px; font-size: 0.875rem; }
+    .side__foot { margin: 0 0 0 auto; flex-direction: row; align-items: center; }
+    .side__who, .side__site { display: none; }
+    .f-row { grid-template-columns: 1fr; }
+  }
+</style>

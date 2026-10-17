@@ -1,17 +1,19 @@
 ---
 /**
  * 메인 히어로 — 스크롤 3D 여정
- *   1막 대한민국   : 흩어진 입자가 한반도 지형으로 모인다   (원래의 블루→시안 + 골드 스파크)
+ *   1막 대한민국   : 흩어진 입자가 한반도 지형으로 모인다   (블루→시안 + 골드 스파크)
  *   2막 핵심       : 한반도가 구형 코어로 재배열된다
- *   3막 기술       : 코어가 회전하며 열린다
+ *   3막 기술       : 코어가 반도체 칩과 회로 기판으로 펼쳐진다   (2026-10 미팅: 기술을 떠올리는 모양)
  *   4막 KoreTech   : 입자가 실제 CI 워드마크 모양으로 재조합된다
- *   5막 피날레     : 입자는 반짝이는 물결로 흘러내리고, 선명한 로고가 떠오른다
+ *   5막 피날레     : 입자는 반짝이는 물결로 흘러내리고, 선명한 공식 로고(2단)가 떠오른다
  *
- * 4·5막의 로고 모양과 색은 /brand/wordmark-dark.png 픽셀을 런타임에 샘플링해서 만든다.
- * 로고 파일을 교체하면 이 장면도 자동으로 따라간다.
+ * 4·5막 로고 모양과 색은 /brand/wordmark-dark.png 픽셀을 런타임에 샘플링해서 만든다.
+ * 5막의 선명한 로고는 /brand/logo-stack-dark.svg — 원본 AI 에서 뽑은 벡터. 1행(KoreTech)이 입자 워드마크와 정확히 겹친다.
  */
 import { url } from '../lib/site';
 const wordmark = url('/brand/wordmark-dark.png');
+const stack = url('/brand/logo-stack-dark.svg');
+const stackMask = url('/brand/logo-stack-mask.svg');
 ---
 
 <section class="hero" data-hero>
@@ -35,7 +37,7 @@ const wordmark = url('/brand/wordmark-dark.png');
       <div class="act" data-act="2">
         <p class="act__no">03 — TECH</p>
         <p class="act__h">기술<span class="dot">.</span></p>
-        <p class="act__p">투자와 융자, 경영·기술 지도로 기술이 사업이 되도록 함께합니다.</p>
+        <p class="act__p">투자와 융자, 경영·기술 자문으로 기술이 사업이 되도록 함께합니다.</p>
       </div>
 
       <!-- 4막: 입자가 워드마크를 그린다. 글자는 입자가 맡으므로 라벨만 둔다. -->
@@ -43,14 +45,13 @@ const wordmark = url('/brand/wordmark-dark.png');
         <p class="act__no act__no--c">04 — KORETECH</p>
       </div>
 
-      <!-- 5막: 선명한 로고 + 반짝이는 물결 -->
+      <!-- 5막: 선명한 공식 로고 + 반짝이는 물결 -->
       <div class="act act--finale" data-act="4" data-finale>
-        <div class="finale__logo" style={`--mask:url(${wordmark})`}>
-          <img src={wordmark} alt="KoreTech" width="700" height="121" />
+        <div class="finale__logo" style={`--mask:url(${stackMask})`}>
+          <img src={stack} alt="KoreTech Investment" width="479" height="168" />
           <span class="finale__shine" aria-hidden="true"></span>
         </div>
         <div class="finale__text">
-          <p class="finale__word">INVESTMENT</p>
           <p class="finale__tag">대한민국 <b>핵심 기술기업</b>의 성장 파트너</p>
           <a class="finale__cta" href={url('/about/overview')}>회사소개 <span aria-hidden="true">→</span></a>
         </div>
@@ -67,7 +68,7 @@ const wordmark = url('/brand/wordmark-dark.png');
 </section>
 
 <style>
-  .hero { position: relative; height: 520vh; background: var(--ground); }
+  .hero { position: relative; height: 560vh; background: var(--ground); }
   .hero__pin {
     position: sticky;
     top: 0;
@@ -103,12 +104,12 @@ const wordmark = url('/brand/wordmark-dark.png');
   .act__no {
     margin: 0 0 20px;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
     font-weight: 600;
-    letter-spacing: 0.34em;
+    letter-spacing: 0.3em;
     color: var(--cyan-lift);
   }
-  .act__no--c { margin: 0; color: rgba(255, 255, 255, 0.45); }
+  .act__no--c { margin: 0; color: rgba(255, 255, 255, 0.5); }
   .act__h {
     margin: 0;
     font-size: clamp(3.25rem, 9vw, 8rem);
@@ -121,22 +122,24 @@ const wordmark = url('/brand/wordmark-dark.png');
   .act__p {
     margin: 26px 0 0;
     max-width: 30ch;
-    font-size: clamp(1rem, 1.55vw, 1.375rem);
+    font-size: clamp(1.0625rem, 1.6vw, 1.4375rem);
     font-weight: 300;
     line-height: 1.68;
-    color: rgba(255, 255, 255, 0.74);
+    color: rgba(255, 255, 255, 0.76);
   }
 
-  /* ---------- 5막 피날레 ---------- */
+  /* ---------- 5막 피날레 ----------
+     1행(KoreTech)의 중심이 화면 41% 높이에 오도록 둔다 — 입자 워드마크도 같은 자리.
+     공식 로고 비율: 전체 높이 = 폭 × 0.3507, 1행 중심 = 위에서 24.8% */
   .act--finale { padding: 0; }
   .finale__logo {
     position: absolute;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    top: calc(41% - var(--logo-w, 46vw) * 0.087);
+    transform: translateX(-50%);
     width: var(--logo-w, 46vw);
   }
-  .finale__logo img { width: 100%; filter: drop-shadow(0 6px 34px rgba(90, 146, 238, 0.45)); }
+  .finale__logo img { width: 100%; height: auto; filter: drop-shadow(0 8px 36px rgba(79, 139, 234, 0.42)); }
 
   /* 반짝이는 물결 — 로고 글자 안쪽만 빛이 훑고 지나간다 */
   .finale__shine {
@@ -171,27 +174,16 @@ const wordmark = url('/brand/wordmark-dark.png');
     position: absolute;
     left: 0;
     right: 0;
-    /* 로고(가로세로비 0.173) 아래로 붙인다 */
-    top: calc(50% + (var(--logo-w, 46vw) * 0.173) / 2 + 22px);
+    top: calc(41% + var(--logo-w, 46vw) * 0.2637 + 26px);
     text-align: center;
-    padding: 16px var(--gutter) 24px;
-    /* 물결 입자 위에서도 글자가 읽히도록 부드러운 음영을 깐다 */
-    background: radial-gradient(56% 120% at 50% 44%, rgba(8, 11, 18, 0.82) 0%, rgba(8, 11, 18, 0) 72%);
-  }
-  .finale__word {
-    margin: 0;
-    font-family: Sora, Pretendard, sans-serif;
-    font-size: clamp(0.8125rem, 1.55vw, 1.25rem);
-    font-weight: 300;
-    letter-spacing: 0.54em;
-    text-indent: 0.54em;
-    color: rgba(255, 255, 255, 0.9);
+    padding: 12px var(--gutter) 22px;
+    background: radial-gradient(56% 120% at 50% 44%, rgba(8, 11, 18, 0.8) 0%, rgba(8, 11, 18, 0) 72%);
   }
   .finale__tag {
-    margin: 20px 0 0;
-    font-size: clamp(0.9375rem, 1.35vw, 1.1875rem);
+    margin: 0;
+    font-size: clamp(1rem, 1.45vw, 1.25rem);
     font-weight: 300;
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.78);
   }
   .finale__tag b { font-weight: 600; color: #fff; }
   .finale__cta {
@@ -199,7 +191,7 @@ const wordmark = url('/brand/wordmark-dark.png');
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-top: 30px;
+    margin-top: 26px;
     padding: 14px 32px;
     border-radius: var(--r-pill);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -248,7 +240,7 @@ const wordmark = url('/brand/wordmark-dark.png');
     gap: 10px;
     margin: 0;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     letter-spacing: 0.3em;
     color: rgba(255, 255, 255, 0.5);
   }
@@ -281,16 +273,15 @@ const wordmark = url('/brand/wordmark-dark.png');
     display: flex; position: static; inset: auto; opacity: 1; transform: none;
     flex-direction: column; align-items: center;
   }
-  .hero.is-static .finale__logo { position: static; transform: none; width: min(430px, 66vw); }
-  .hero.is-static .finale__text { position: static; margin-top: 26px; }
+  .hero.is-static .finale__logo { position: static; transform: none; width: min(460px, 72vw); }
+  .hero.is-static .finale__text { position: static; margin-top: 30px; background: none; }
   .hero.is-static .hero__veil {
-    background: radial-gradient(ellipse 70% 70% at 50% 46%, rgba(18, 68, 157, 0.3) 0%, transparent 70%);
+    background: radial-gradient(ellipse 70% 70% at 50% 46%, rgba(10, 76, 160, 0.3) 0%, transparent 70%);
   }
 
   @media (max-width: 700px) {
-    .hero { height: 460vh; }
+    .hero { height: 500vh; }
     .act__p { max-width: 24ch; }
-    .finale__text { top: calc(50% + (var(--logo-w, 70vw) * 0.173) / 2 + 22px); }
   }
 </style>
 
@@ -310,12 +301,7 @@ const wordmark = url('/brand/wordmark-dark.png');
     let renderer: THREE.WebGLRenderer | null = null;
     if (!reduce) {
       try {
-        renderer = new THREE.WebGLRenderer({
-          canvas,
-          alpha: true,
-          antialias: false,
-          powerPreference: 'high-performance',
-        });
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'high-performance' });
       } catch {
         renderer = null;
       }
@@ -332,7 +318,9 @@ const wordmark = url('/brand/wordmark-dark.png');
       const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
       camera.position.set(0, 0, 10);
 
-      // ---------- 한반도 윤곽 (경도/위도) ----------
+      const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+      // ---------- 1막: 한반도 윤곽 (경도/위도) ----------
       const OUTLINE: [number, number][] = [
         [130.7, 42.3], [129.7, 41.7], [129.4, 40.5], [128.4, 39.9], [127.6, 39.4], [128.3, 38.6],
         [129.0, 37.6], [129.4, 36.8], [129.4, 36.0], [129.2, 35.4], [128.5, 35.0], [127.7, 34.7],
@@ -352,12 +340,68 @@ const wordmark = url('/brand/wordmark-dark.png');
       };
       const CX = 127.4, CY = 38.0, LON_SQUEEZE = 0.8, SCALE = 0.56;
 
+      // ---------- 3막: 반도체 칩 + 회로 기판 (선분 목록 → 길이 비례로 입자 배치) ----------
+      type Seg = [number, number, number, number];
+      const chipSegs: Seg[] = [];
+      const square = (h: number) => {
+        chipSegs.push([-h, -h, h, -h], [h, -h, h, h], [h, h, -h, h], [-h, h, -h, -h]);
+      };
+      const DIE = 1.1;
+      square(DIE);           // 패키지 테두리
+      square(DIE * 0.86);    // 다이 테두리
+      for (let g = 1; g < 6; g++) {
+        const v = -DIE * 0.86 + (DIE * 1.72 * g) / 6; // 다이 안쪽 격자
+        chipSegs.push([v, -DIE * 0.86, v, DIE * 0.86], [-DIE * 0.86, v, DIE * 0.86, v]);
+      }
+      const pads: [number, number][] = [];
+      const PINS = 9;
+      for (let side = 0; side < 4; side++) {
+        for (let k = 0; k < PINS; k++) {
+          const t = -DIE * 0.82 + (DIE * 1.64 * k) / (PINS - 1);
+          // 핀 + 회로선: 바깥으로 직진 → 45도 꺾임 → 다시 직진 → 패드
+          const out1 = DIE + 0.28, len2 = rand(0.18, 0.5), diag = rand(0.15, 0.45) * (k % 2 ? 1 : -1);
+          const len3 = rand(0.15, 0.7);
+          const pts: [number, number][] = [[DIE, t], [out1, t], [out1 + len2, t], [out1 + len2 + Math.abs(diag), t + diag], [out1 + len2 + Math.abs(diag) + len3, t + diag]];
+          const rot = (p: [number, number]): [number, number] => {
+            const [x, y] = p;
+            return side === 0 ? [x, y] : side === 1 ? [-y, x] : side === 2 ? [-x, -y] : [y, -x];
+          };
+          const rp = pts.map(rot);
+          for (let s = 0; s < rp.length - 1; s++) chipSegs.push([rp[s][0], rp[s][1], rp[s + 1][0], rp[s + 1][1]]);
+          pads.push(rp[rp.length - 1]);
+        }
+      }
+      const segLen = chipSegs.map(([a, b, c, d]) => Math.hypot(c - a, d - b));
+      const totalLen = segLen.reduce((s, v) => s + v, 0);
+      const cumLen: number[] = [];
+      segLen.reduce((s, v, i) => ((cumLen[i] = s + v), s + v), 0);
+      const chipPoint = (): [number, number] => {
+        const r = Math.random();
+        if (r < 0.12) {
+          // 패드(작은 원)
+          const [px, py] = pads[(Math.random() * pads.length) | 0];
+          const a = Math.random() * Math.PI * 2, rr = 0.055 * Math.sqrt(Math.random());
+          return [px + Math.cos(a) * rr, py + Math.sin(a) * rr];
+        }
+        if (r < 0.2) {
+          // 칩 한가운데 코어 (면으로 채움)
+          return [rand(-0.32, 0.32), rand(-0.32, 0.32)];
+        }
+        const L = Math.random() * totalLen;
+        let i = 0;
+        while (cumLen[i] < L) i++;
+        const [a, b, c, d] = chipSegs[i];
+        const f = Math.random();
+        return [a + (c - a) * f + rand(-0.012, 0.012), b + (d - b) * f + rand(-0.012, 0.012)];
+      };
+
       const N = isMobile ? 7000 : 17000;
       const korea = new Float32Array(N * 3);
       const core = new Float32Array(N * 3);
+      const chip = new Float32Array(N * 3);
       const logo = new Float32Array(N * 3);
       const seed = new Float32Array(N);
-      const kind = new Float32Array(N);     // 1 = 골드 스파크 (원래의 반짝임)
+      const kind = new Float32Array(N);     // 1 = 골드 스파크
       const toneLogo = new Float32Array(N); // 4·5막 색: 로고 픽셀에서 샘플링 (0 블루 / 1 레드)
 
       let i = 0;
@@ -385,10 +429,15 @@ const wordmark = url('/brand/wordmark-dark.png');
         core[i * 3 + 1] = rr * Math.sin(th) * Math.sin(phi);
         core[i * 3 + 2] = rr * Math.cos(phi);
 
-        // 로고 샘플링 전까지는 코어와 같은 자리 (샘플링 실패 시의 폴백)
-        logo[i * 3] = core[i * 3];
-        logo[i * 3 + 1] = core[i * 3 + 1];
-        logo[i * 3 + 2] = core[i * 3 + 2];
+        const [cxp, cyp] = chipPoint();
+        chip[i * 3] = cxp;
+        chip[i * 3 + 1] = cyp;
+        chip[i * 3 + 2] = (Math.random() - 0.5) * 0.05;
+
+        // 로고 샘플링 전까지는 칩과 같은 자리 (샘플링 실패 시의 폴백)
+        logo[i * 3] = cxp;
+        logo[i * 3 + 1] = cyp;
+        logo[i * 3 + 2] = 0;
 
         seed[i] = Math.random();
         kind[i] = Math.random() < 0.04 ? 1 : 0;
@@ -401,6 +450,7 @@ const wordmark = url('/brand/wordmark-dark.png');
       const toneLogoAttr = new THREE.BufferAttribute(toneLogo, 1);
       geo.setAttribute('position', new THREE.BufferAttribute(korea, 3));
       geo.setAttribute('aCore', new THREE.BufferAttribute(core, 3));
+      geo.setAttribute('aChip', new THREE.BufferAttribute(chip, 3));
       geo.setAttribute('aLogo', logoAttr);
       geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
       geo.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
@@ -408,22 +458,24 @@ const wordmark = url('/brand/wordmark-dark.png');
 
       const U = {
         uTime: { value: 0 },
-        uMorph: { value: 0 },   // 0 한반도 → 1 코어 → 2 로고
-        uWave: { value: 0 },    // 5막: 로고 → 반짝이는 물결
         uIntro: { value: 0 },
+        uCore: { value: 0 },  // 한반도 → 코어
+        uChip: { value: 0 },  // 코어 → 칩
+        uLogo: { value: 0 },  // 칩 → 워드마크
+        uWave: { value: 0 },  // 워드마크 → 물결
         uPR: { value: gl.getPixelRatio() },
-        // 로고 좌표는 가로폭 1.0 으로 정규화해 두고 화면 비율에 맞춰 키운다.
-        // 샘플링 전에는 aLogo 가 코어 좌표(폴백)이므로 1 로 둔다.
+        // 로고 좌표는 가로폭 1.0 으로 정규화해 두고 화면 비율에 맞춰 키운다 (샘플링 전에는 1)
         uLogoScale: { value: 1 },
-        // 5막 물결이 내려가는 거리(월드 단위) — 화면 세로의 약 26%
-        uWaveDrop: { value: 1.95 },
-        // 1~3막: 원래의 블루 → 시안 + 골드 스파크
+        uLogoLift: { value: 0 },   // 워드마크를 화면 41% 높이로 올리는 거리(월드)
+        uWaveDrop: { value: 3.54 }, // 물결이 내려가는 거리(월드) — 화면 88% 높이
+        uChipScale: { value: 1 },
+        uChipShift: { value: 0 },
         uBlue: { value: new THREE.Color('#3b82f6') },
         uCyan: { value: new THREE.Color('#22d3ee') },
         uGold: { value: new THREE.Color('#c9a961') },
-        // 4~5막: 실제 로고 색 (어두운 배경에서 또렷하게 보이도록 밝기를 올린 값)
-        uLogoBlue: { value: new THREE.Color('#79a8f5') },
-        uLogoRed: { value: new THREE.Color('#f0736e') },
+        // 4~5막: 실제 로고 색 (어두운 배경에서 또렷하도록 밝기만 올린 CI 레드·블루)
+        uLogoBlue: { value: new THREE.Color('#6a9ff0') },
+        uLogoRed: { value: new THREE.Color('#ee6560') },
       };
       let logoReady = false;
 
@@ -434,50 +486,53 @@ const wordmark = url('/brand/wordmark-dark.png');
         blending: THREE.AdditiveBlending,
         vertexShader: /* glsl */ `
           attribute vec3 aCore;
+          attribute vec3 aChip;
           attribute vec3 aLogo;
           attribute float aSeed;
           attribute float aKind;
           attribute float aToneLogo;
-          uniform float uTime, uMorph, uWave, uIntro, uPR, uLogoScale, uWaveDrop;
-          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark;
+          uniform float uTime, uIntro, uCore, uChip, uLogo, uWave, uPR;
+          uniform float uLogoScale, uLogoLift, uWaveDrop, uChipScale, uChipShift;
+          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip;
           float ease(float t){ return t * t * (3.0 - 2.0 * t); }
           void main(){
             vec3 scatter = position + vec3(sin(aSeed * 91.0), cos(aSeed * 67.0), sin(aSeed * 53.0)) * 6.5;
             float ti = ease(clamp((uIntro - aSeed * 0.4) / 0.6, 0.0, 1.0));
             vec3 p0 = mix(scatter, position, ti);
 
-            float m1 = ease(clamp(uMorph - aSeed * 0.22, 0.0, 1.0));
-            float m2 = ease(clamp(uMorph - 1.0 - aSeed * 0.22, 0.0, 1.0));
-            float m3 = ease(clamp(uWave - aSeed * 0.30, 0.0, 1.0));
+            float m1 = ease(clamp(uCore * 1.25 - aSeed * 0.25, 0.0, 1.0));
+            float mc = ease(clamp(uChip * 1.25 - aSeed * 0.25, 0.0, 1.0));
+            float m2 = ease(clamp(uLogo * 1.25 - aSeed * 0.25, 0.0, 1.0));
+            float m3 = ease(clamp(uWave * 1.3 - aSeed * 0.30, 0.0, 1.0));
+
+            vec3 chipPos = aChip * uChipScale + vec3(uChipShift, 0.0, 0.0);
 
             // 5막: 워드마크가 가로로 퍼지며 사인파를 그리는 물결이 된다
             float phase = aLogo.x * 24.0 + uTime * 1.9;
-            vec3 wave = vec3(
-              aLogo.x * 1.30,
-              aLogo.y * 0.14 + 0.055 * sin(phase),
-              aLogo.z * 0.6 + 0.03 * cos(phase * 0.7)
-            );
+            vec3 wave = vec3(aLogo.x * 1.30, aLogo.y * 0.14 + 0.055 * sin(phase), aLogo.z * 0.6 + 0.03 * cos(phase * 0.7));
             vec3 late = mix(aLogo, wave, m3) * uLogoScale;
-            // 화면 비율과 무관하게 항상 글자 아래로 내려가도록 월드 단위로 이동한다
-            late.y -= uWaveDrop * m3;
+            late.y += uLogoLift - uWaveDrop * m3;
 
             vec3 p = mix(p0, aCore, m1);
+            p = mix(p, chipPos, mc);
             p = mix(p, late, m2);
 
             p += 0.045 * vec3(
               sin(uTime + aSeed * 41.0),
               cos(uTime * 1.2 + aSeed * 33.0),
               sin(uTime * 0.8 + aSeed * 21.0)
-            ) * (1.0 - m3 * 0.6);
+            ) * (1.0 - m3 * 0.6) * (1.0 - mc * (1.0 - m2) * 0.75);
 
             vec4 mv = modelViewMatrix * vec4(p, 1.0);
             vDepth = -mv.z;
             vKind = aKind;
             vStage = m2;
+            vChip = mc * (1.0 - m2);
             vToneLogo = aToneLogo;
             vGlow = m1 * (1.0 - m2) + m2;
-            // 물결 마루에서 반짝인다
-            vSpark = pow(max(0.0, sin(phase)), 10.0) * m3;
+            // 회로를 따라 신호가 흐르듯 반짝인다 (3막) / 물결 마루에서 반짝인다 (5막)
+            float pulse = pow(max(0.0, sin(length(aChip.xy) * 9.0 - uTime * 3.2)), 14.0) * vChip;
+            vSpark = pow(max(0.0, sin(phase)), 10.0) * m3 + pulse;
 
             gl_PointSize = ((aKind > 0.5 ? 3.1 : 1.8) + m2 * 0.95 + vSpark * 2.2) * uPR * (10.0 / vDepth);
             gl_Position = projectionMatrix * mv;
@@ -485,20 +540,18 @@ const wordmark = url('/brand/wordmark-dark.png');
         `,
         fragmentShader: /* glsl */ `
           uniform vec3 uBlue, uCyan, uGold, uLogoBlue, uLogoRed;
-          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark;
+          varying float vKind, vDepth, vStage, vGlow, vToneLogo, vSpark, vChip;
           void main(){
             vec2 c = gl_PointCoord - 0.5;
             float r = length(c);
             if (r > 0.5) discard;
             float a = smoothstep(0.5, 0.04, r);
 
-            // 1~3막: 원래의 블루 → 시안, 일부는 골드 스파크
             vec3 base = mix(uBlue, uCyan, 0.18 + 0.82 * smoothstep(0.0, 1.0, vGlow));
             if (vKind > 0.5) base = uGold;
-            // 4~5막: 실제 로고 색으로 넘어간다
             vec3 logoCol = mix(uLogoBlue, uLogoRed, vToneLogo);
             vec3 col = mix(base, logoCol, vStage);
-            col = mix(col, vec3(1.0), vSpark * 0.85);
+            col = mix(col, vec3(1.0), clamp(vSpark, 0.0, 1.0) * 0.85);
 
             float alpha = a * (0.86 + 0.14 * vStage + vSpark * 0.4) * smoothstep(17.0, 6.0, vDepth);
             gl_FragColor = vec4(col, alpha);
@@ -510,7 +563,7 @@ const wordmark = url('/brand/wordmark-dark.png');
       group.add(new THREE.Points(geo, material));
       scene.add(group);
 
-      // ---------- 4·5막: 실제 로고 PNG를 샘플링해 입자 좌표·색을 만든다 ----------
+      // ---------- 4·5막: 로고 PNG 를 샘플링해 입자 좌표·색을 만든다 ----------
       const logoImg = new Image();
       logoImg.decoding = 'async';
       logoImg.onload = () => {
@@ -520,19 +573,16 @@ const wordmark = url('/brand/wordmark-dark.png');
         const ctx = cv.getContext('2d', { willReadFrequently: true });
         if (!ctx || !w || !h) return;
         ctx.drawImage(logoImg, 0, 0);
-
         let data: Uint8ClampedArray;
         try {
           data = ctx.getImageData(0, 0, w, h).data;
         } catch {
-          return; // 캔버스가 오염되면 코어 폴백을 유지한다
+          return; // 캔버스가 오염되면 폴백을 유지한다
         }
-
-        const scale = 1 / w; // 가로폭 1.0 으로 정규화 (실제 크기는 uLogoScale 이 정한다)
+        const scale = 1 / w;
         let placed = 0;
         let guard = 0;
-        const maxTries = N * 300;
-        while (placed < N && guard < maxTries) {
+        while (placed < N && guard < N * 300) {
           guard++;
           const x = (Math.random() * w) | 0;
           const y = (Math.random() * h) | 0;
@@ -545,9 +595,7 @@ const wordmark = url('/brand/wordmark-dark.png');
           toneLogo[placed] = r > g + 26 && r > b + 26 ? 1 : 0;
           placed++;
         }
-        if (placed < N * 0.4) return; // 샘플이 너무 적으면 폴백 유지
-
-        // 남는 입자는 로고 뒤로 옅게 흩뿌려 배경을 만든다 (같은 정규화 공간)
+        if (placed < N * 0.4) return;
         for (let k = placed; k < N; k++) {
           const a = Math.random() * Math.PI * 2;
           const rad = 0.5 + Math.random() * 0.42;
@@ -559,18 +607,29 @@ const wordmark = url('/brand/wordmark-dark.png');
         logoAttr.needsUpdate = true;
         toneLogoAttr.needsUpdate = true;
         logoReady = true;
-        fitLogo();
+        fit();
       };
       logoImg.src = canvas.dataset.logo ?? '';
 
-      // ---------- 리사이즈 ----------
-      // 4막 카메라 거리(9.1)에서 화면에 보이는 가로폭에 맞춰 로고 크기를 정하고,
-      // 5막 HTML 로고가 입자 워드마크와 정확히 같은 자리·크기에 오도록 CSS 변수도 맞춘다.
-      const fitLogo = () => {
-        const visibleW = 2 * 9.1 * Math.tan((45 * Math.PI) / 360) * camera.aspect;
-        const worldW = Math.min(7.4, visibleW * 0.82);
-        if (logoReady) U.uLogoScale.value = worldW;
-        finale?.style.setProperty('--logo-w', `${(worldW / visibleW) * window.innerWidth}px`);
+      // ---------- 화면 맞춤 ----------
+      // 카메라 z 9.1(4·5막)·9.6(3막)에서 보이는 크기를 기준으로 로고·칩 크기와 위치를 정한다.
+      const TAN = Math.tan((45 * Math.PI) / 360);
+      const fit = () => {
+        const visH91 = 2 * 9.1 * TAN;
+        const visW91 = visH91 * camera.aspect;
+        const worldW = Math.min(5.6, visW91 * 0.7);
+        if (logoReady) {
+          U.uLogoScale.value = worldW;
+          U.uLogoLift.value = 0.09 * visH91;            // 화면 41% 높이
+          U.uWaveDrop.value = 0.09 * visH91 + 0.38 * visH91; // 화면 88% 높이
+        }
+        finale?.style.setProperty('--logo-w', `${(worldW / visW91) * window.innerWidth}px`);
+
+        const visW96 = 2 * 9.6 * TAN * camera.aspect;
+        const wide = camera.aspect > 1.15;
+        // 데스크톱: 글자(왼쪽)와 겹치지 않게 오른쪽으로 / 모바일: 화면 폭에 맞춰 줄인다
+        U.uChipScale.value = wide ? 1 : Math.min(1, (visW96 * 0.46) / 2.7);
+        U.uChipShift.value = wide ? Math.min(2.2, visW96 * 0.17) : 0;
       };
       const resize = () => {
         const w = section.clientWidth;
@@ -578,7 +637,7 @@ const wordmark = url('/brand/wordmark-dark.png');
         gl.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        fitLogo();
+        fit();
       };
       resize();
       window.addEventListener('resize', resize);
@@ -595,9 +654,9 @@ const wordmark = url('/brand/wordmark-dark.png');
       window.addEventListener('resize', readProgress);
 
       const RANGES: [number, number][] = [
-        [0.0, 0.19],  // 대한민국
-        [0.28, 0.44], // 핵심
-        [0.52, 0.68], // 기술
+        [0.0, 0.17],  // 대한민국
+        [0.27, 0.4],  // 핵심
+        [0.5, 0.64],  // 기술 (칩)
         [0.74, 0.82], // KORETECH 라벨
         [0.88, 1.01], // 피날레
       ];
@@ -616,35 +675,45 @@ const wordmark = url('/brand/wordmark-dark.png');
         mouse.ty = -((e.clientY / window.innerHeight) * 2 - 1);
       });
 
-      const clock = new THREE.Clock();
+      const t0 = performance.now();
       const introStart = performance.now();
       let lastAct = -1;
+      let spinAngle = 0;
+      let lastT = 0;
 
       const frame = () => {
-        const t = clock.getElapsedTime();
+        const t = (performance.now() - t0) / 1000;
+        const dt = Math.min(0.05, t - lastT);
+        lastT = t;
         U.uTime.value = t;
         U.uIntro.value = Math.min(1, (performance.now() - introStart) / 2200);
 
         const p = progress;
-        const m1 = clamp01((p - 0.2) / 0.14);  // 한반도 → 코어
-        const m2 = clamp01((p - 0.66) / 0.12); // 코어 → 워드마크
-        const m3 = clamp01((p - 0.84) / 0.11); // 워드마크 → 물결
-        U.uMorph.value = m1 + m2;
+        const m1 = clamp01((p - 0.18) / 0.12);  // 한반도 → 코어
+        const mc = clamp01((p - 0.43) / 0.1);   // 코어 → 칩
+        const m2 = clamp01((p - 0.66) / 0.1);   // 칩 → 워드마크
+        const m3 = clamp01((p - 0.84) / 0.11);  // 워드마크 → 물결
+        U.uCore.value = m1;
+        U.uChip.value = mc;
+        U.uLogo.value = m2;
         U.uWave.value = m3;
 
         mouse.x += (mouse.tx - mouse.x) * 0.05;
         mouse.y += (mouse.ty - mouse.y) * 0.05;
 
-        // 카메라 — 지도로 다가갔다가 코어에서 물러선다
-        const zApproach = 10 - 2.4 * clamp01(p / 0.2);
+        // 카메라 — 지도로 다가갔다가 코어·칩에서 물러서고, 로고에서 정면
+        const zApproach = 10 - 2.4 * clamp01(p / 0.18);
         const zCore = zApproach * (1 - m1) + 9.6 * m1;
         camera.position.z = zCore * (1 - m2) + 9.1 * m2;
         camera.lookAt(0, 0, 0);
 
-        // 로고 단계에서는 정면을 유지한다 (자전은 코어 단계에서만)
-        const spin = m1 * (1 - m2);
-        group.rotation.y = mouse.x * 0.22 + t * 0.16 * spin + Math.sin(t * 0.5) * 0.04 * m2 * (1 - m3);
-        group.rotation.x = -mouse.y * 0.13 - 0.3 * clamp01(p / 0.2) * (1 - m1);
+        // 코어 단계에서만 자전하고, 칩이 펼쳐지면서 정면으로 돌아온다 (한 바퀴 이내로 감아 되돌림)
+        const spinOn = m1 * (1 - mc);
+        spinAngle = (spinAngle + dt * 0.5 * spinOn) % (Math.PI * 2);
+        if (spinOn < 0.02) spinAngle *= 0.9;
+        const chipOnly = mc * (1 - m2);
+        group.rotation.y = mouse.x * 0.22 * (1 - chipOnly * 0.5) + spinAngle * (1 - mc) + Math.sin(t * 0.45) * 0.22 * chipOnly + Math.sin(t * 0.5) * 0.04 * m2 * (1 - m3);
+        group.rotation.x = -mouse.y * 0.13 - 0.3 * clamp01(p / 0.18) * (1 - m1) - 0.42 * chipOnly;
 
         let current = 0;
         for (let idx = 0; idx < acts.length; idx++) {

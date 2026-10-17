@@ -1,0 +1,208 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import BodyEditor from '../../../components/admin/BodyEditor.astro';
+import FileDrop from '../../../components/admin/FileDrop.astro';
+import {
+  envOf, str, isDate, today, audit, checkUpload, saveFile, deleteFile, filesOf, fileUrl, humanSize,
+  NOTICE_CATEGORIES, type Notice,
+} from '../../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const who = Astro.locals.admin!.username;
+const isNew = Astro.params.id === 'new';
+const id = isNew ? 0 : Number(Astro.params.id);
+let notice: Notice | null = null;
+if (!isNew) {
+  notice = Number.isInteger(id) ? await env.DB.prepare('SELECT * FROM notices WHERE id = ?').bind(id).first<Notice>() : null;
+  if (!notice) return Astro.redirect('/admin/notices');
+}
+
+const v = {
+  category: notice?.category ?? '공지',
+  title: notice?.title ?? '',
+  post_date: notice?.post_date ?? today(),
+  pinned: notice?.pinned ?? 0,
+  published: notice?.published ?? 1,
+  body: notice?.body ?? '',
+};
+const errors: string[] = [];
+
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const intent = str(fd, 'intent', 20);
+
+  if (intent === 'delete' && notice) {
+    for (const f of await filesOf(env.DB, 'notice', notice.id)) await deleteFile(env, f.id);
+    await env.DB.prepare('DELETE FROM notices WHERE id = ?').bind(notice.id).run();
+    await audit(env.DB, who, 'notice.delete', notice.title);
+    return Astro.redirect('/admin/notices?ok=deleted', 303);
+  }
+
+  v.category = str(fd, 'category', 20);
+  v.title = str(fd, 'title', 200);
+  v.post_date = str(fd, 'post_date', 10);
+  v.pinned = fd.get('pinned') === '1' ? 1 : 0;
+  v.published = fd.get('published') === '1' ? 1 : 0;
+  v.body = str(fd, 'body', 50000);
+  const newFiles = fd.getAll('files').filter((f): f is File => f instanceof File && f.size > 0);
+  const delIds = fd.getAll('delfile').map((x) => Number(x)).filter(Number.isInteger);
+
+  if (!(NOTICE_CATEGORIES as readonly string[]).includes(v.category)) errors.push('분류를 고르세요.');
+  if (!v.title) errors.push('제목을 입력하세요.');
+  if (!isDate(v.post_date)) errors.push('게시일을 올바르게 입력하세요. (예: 2026-10-17)');
+  for (const f of newFiles) {
+    const e = checkUpload(f);
+    if (e) errors.push(e);
+  }
+
+  if (errors.length === 0) {
+    let noticeId = notice?.id ?? 0;
+    if (isNew) {
+      const r = await env.DB.prepare(
+        'INSERT INTO notices (category, title, body, post_date, published, pinned) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(v.category, v.title, v.body, v.post_date, v.published, v.pinned).run();
+      noticeId = Number(r.meta.last_row_id);
+    } else {
+      await env.DB.prepare(
+        "UPDATE notices SET category = ?, title = ?, body = ?, post_date = ?, published = ?, pinned = ?, updated_at = datetime('now') WHERE id = ?"
+      ).bind(v.category, v.title, v.body, v.post_date, v.published, v.pinned, noticeId).run();
+    }
+    const owned = new Set((await filesOf(env.DB, 'notice', noticeId)).map((f) => f.id));
+    for (const fid of delIds) if (owned.has(fid)) await deleteFile(env, fid);
+    let sort = owned.size;
+    for (const f of newFiles) await saveFile(env, 'notice', noticeId, f, sort++);
+    await audit(env.DB, who, isNew ? 'notice.create' : 'notice.update', v.title);
+
+    if (intent === 'view') return Astro.redirect(`/notice/${noticeId}`, 303);
+    return Astro.redirect(`/admin/notices/${noticeId}?ok=${isNew ? 'created' : 'saved'}`, 303);
+  }
+}
+
+const files = notice ? await filesOf(env.DB, 'notice', notice.id) : [];
+---
+
+<Admin title={isNew ? '새 공지' : '공지 수정'} active="notices">
+  <div class="a-head">
+    <div>
+      <a class="back" href="/admin/notices">← 공지 목록</a>
+      <h1>{isNew ? '새 공지 쓰기' : '공지 수정'}</h1>
+    </div>
+    {notice && <a class="a-btn a-btn--ghost" href={`/notice/${notice.id}`} target="_blank" rel="noopener">홈페이지에서 보기 ↗</a>}
+  </div>
+
+  {errors.length > 0 && (
+    <div class="a-err" role="alert"><strong>저장하지 못했습니다.</strong><ul>{errors.map((e) => <li>{e}</li>)}</ul></div>
+  )}
+
+  <form method="post" enctype="multipart/form-data" class="editor" data-editor>
+    <div class="a-card">
+      <div class="f">
+        <label for="title">제목</label>
+        <input id="title" name="title" type="text" required maxlength="200" value={v.title} placeholder="예: 2026년 상반기 통일경영공시" />
+      </div>
+      <div class="f-row" style="margin-top:18px">
+        <div class="f">
+          <label for="category">분류</label>
+          <select id="category" name="category">
+            {NOTICE_CATEGORIES.map((c) => <option value={c} selected={c === v.category}>{c}</option>)}
+          </select>
+        </div>
+        <div class="f">
+          <label for="post_date">게시일</label>
+          <input id="post_date" name="post_date" type="date" required value={v.post_date} />
+        </div>
+        <div class="f">
+          <span class="f__label">표시</span>
+          <label class="check" style="margin-top:10px"><input type="checkbox" name="pinned" value="1" checked={!!v.pinned} /> 목록 맨 위에 고정</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="a-card">
+      <BodyEditor value={v.body} />
+    </div>
+
+    <div class="a-card">
+      {files.length > 0 && (
+        <div class="f">
+          <span class="f__label">올린 파일</span>
+          <ul class="have">
+            {files.map((f) => (
+              <li>
+                <a href={fileUrl(f)} target="_blank" rel="noopener">{f.name}</a>
+                <span class="have__size">{humanSize(f.size)}</span>
+                <label class="have__del"><input type="checkbox" name="delfile" value={f.id} /> 삭제</label>
+              </li>
+            ))}
+          </ul>
+          <p class="f__hint">‘삭제’에 표시한 파일은 저장할 때 지워집니다.</p>
+        </div>
+      )}
+      <div style={files.length ? 'margin-top:18px' : ''}>
+        <FileDrop />
+      </div>
+    </div>
+
+    <div class="a-card bar">
+      <div class="pub" role="radiogroup" aria-label="공개 여부">
+        <label class="check"><input type="radio" name="published" value="1" checked={!!v.published} /> 공개</label>
+        <label class="check"><input type="radio" name="published" value="0" checked={!v.published} /> 작성중 (홈페이지에 안 보임)</label>
+      </div>
+      <div class="bar__btns">
+        <button class="a-btn a-btn--ghost" type="submit" name="intent" value="view">저장하고 보기</button>
+        <button class="a-btn a-btn--primary" type="submit" name="intent" value="save" data-save>저장</button>
+      </div>
+    </div>
+  </form>
+
+  {notice && (
+    <form method="post" class="danger" onsubmit="return confirm('이 공지와 첨부파일을 모두 삭제합니다. 되돌릴 수 없습니다. 삭제할까요?')">
+      <input type="hidden" name="intent" value="delete" />
+      <button class="a-btn a-btn--danger" type="submit">이 공지 삭제</button>
+    </form>
+  )}
+</Admin>
+
+<style>
+  .back { font-size: 0.875rem; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--blue); }
+  .a-head h1 { margin-top: 6px; }
+  .have { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .have li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; font-size: 0.9375rem; }
+  .have a { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--blue); text-decoration: none; font-weight: 600; }
+  .have__size { font-size: 0.8125rem; color: var(--muted-2); }
+  .have__del { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8125rem; color: var(--red); cursor: pointer; }
+  .bar { position: sticky; bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12); }
+  .pub { display: flex; gap: 20px; flex-wrap: wrap; }
+  .bar__btns { display: flex; gap: 8px; }
+  .danger { margin-top: 26px; text-align: right; }
+</style>
+
+<script>
+  // 저장 중 두 번 누르지 않게 + 큰 파일 경고
+  const form = document.querySelector<HTMLFormElement>('[data-editor]');
+  form?.addEventListener('submit', (ev) => {
+    const files = Array.from(form.querySelectorAll<HTMLInputElement>('input[type=file]')).flatMap((i) => Array.from(i.files ?? []));
+    if (files.some((f) => f.size > 30 * 1024 * 1024)) {
+      ev.preventDefault();
+      alert('30MB가 넘는 파일이 있습니다. 빼고 다시 저장하세요.');
+      return;
+    }
+    form.querySelectorAll<HTMLButtonElement>('button[type=submit]').forEach((b) => {
+      b.disabled = true;
+    });
+    const s = form.querySelector<HTMLButtonElement>('[data-save]');
+    if (s) s.textContent = files.length ? '파일 올리는 중…' : '저장 중…';
+    // 눌린 버튼의 intent 값은 disabled 전에 FormData 에 담기지 않으므로 숨은 칸으로 넘긴다
+    const sub = (ev as SubmitEvent).submitter as HTMLButtonElement | null;
+    if (sub?.name) {
+      const h = document.createElement('input');
+      h.type = 'hidden';
+      h.name = sub.name;
+      h.value = sub.value;
+      form.appendChild(h);
+    }
+  });
+</script>

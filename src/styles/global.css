@@ -5,21 +5,22 @@
    ============================================================ */
 
 :root {
-  /* CI 원색 */
-  --red: #c83c39;
-  --blue: #12449d;
-  --ink: #221d1e;
+  /* CI 원색 — 원본 AI 파일 작성값 (2026-10 교체) */
+  --red: #c23737;
+  --blue: #0a4ca0;
+  --black: #1b161c;
+  --ink: #1b161c;
 
   /* 파생 */
-  --blue-600: #1a55bd;
-  --blue-400: #4a80e0;
-  --blue-200: #b8cef2;
-  --red-400: #e0605c;
-  --red-100: #f8e6e5;
+  --blue-600: #1559b8;
+  --blue-400: #4f8bea;
+  --blue-200: #b9cdec;
+  --red-400: #e5524d;
+  --red-100: #f9e7e6;
 
   /* 어두운 배경 위에서 쓰는 밝기 보정 CI 색 */
-  --red-lift: #e45a56;
-  --blue-lift: #5a92ee;
+  --red-lift: #e5524d;
+  --blue-lift: #4f8bea;
   --cyan-lift: #52d3e8;
 
   /* 딥 그라운드 */
@@ -38,9 +39,9 @@
   --muted-2: #9a918c;
 
   /* 그라디언트 */
-  --grad-blue: linear-gradient(135deg, #12449d 0%, #3e74d8 100%);
-  --grad-brand: linear-gradient(110deg, #12449d 0%, #4a80e0 52%, #c83c39 100%);
-  --grad-glow: radial-gradient(60% 60% at 50% 40%, rgba(74, 128, 224, 0.28) 0%, transparent 70%);
+  --grad-blue: linear-gradient(135deg, #0a4ca0 0%, #3a74d4 100%);
+  --grad-brand: linear-gradient(110deg, #0a4ca0 0%, #4f8bea 52%, #c23737 100%);
+  --grad-glow: radial-gradient(60% 60% at 50% 40%, rgba(79, 139, 234, 0.28) 0%, transparent 70%);
 
   /* 타이포 스케일 */
   --fs-display: clamp(2.75rem, 6.4vw, 5.5rem);
@@ -49,7 +50,7 @@
   --fs-h3: 1.3125rem;
   --fs-body: 1.0625rem;
   --fs-sm: 0.9375rem;
-  --fs-label: 0.75rem;
+  --fs-label: 0.9375rem;
 
   /* 모양 */
   --r-xs: 8px;
@@ -166,8 +167,8 @@ p { margin: 0; }
   inset: -20% -10%;
   z-index: -2;
   background:
-    radial-gradient(38% 46% at 78% 18%, rgba(18, 68, 157, 0.55) 0%, transparent 68%),
-    radial-gradient(30% 40% at 12% 88%, rgba(200, 60, 57, 0.24) 0%, transparent 70%);
+    radial-gradient(38% 46% at 78% 18%, rgba(10, 76, 160, 0.55) 0%, transparent 68%),
+    radial-gradient(30% 40% at 12% 88%, rgba(194, 55, 55, 0.24) 0%, transparent 70%);
   pointer-events: none;
 }
 .dark-bg::after {
@@ -188,13 +189,13 @@ p { margin: 0; }
   font-family: Sora, Pretendard, sans-serif;
   font-size: var(--fs-label);
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--blue);
 }
 .label::before {
   content: '';
-  width: 22px;
+  width: 28px;
   height: 2px;
   border-radius: 2px;
   background: var(--grad-brand);
@@ -210,7 +211,7 @@ p { margin: 0; }
 
 /* 강조 단어에 브랜드 그라디언트 (본문용은 블루 계열로만 — 중간에 보라가 끼지 않게) */
 .grad-text {
-  background: linear-gradient(100deg, #12449d 0%, #2f6ad0 60%, #4a80e0 100%);
+  background: linear-gradient(100deg, #0a4ca0 0%, #2a64c4 60%, #4f8bea 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -250,9 +251,9 @@ p { margin: 0; }
 .btn--primary {
   background: var(--grad-blue);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(18, 68, 157, 0.26);
+  box-shadow: 0 6px 20px rgba(10, 76, 160, 0.26);
 }
-.btn--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(18, 68, 157, 0.34); }
+.btn--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(10, 76, 160, 0.34); }
 .btn--ghost { border-color: var(--line-2); color: var(--ink); background: var(--paper); }
 .btn--ghost:hover { border-color: var(--ink); background: var(--ink); color: #fff; transform: translateY(-2px); }
 .btn--onDark { border-color: rgba(255, 255, 255, 0.28); color: #fff; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); }
@@ -344,6 +345,7 @@ table.info th {
   background: var(--surface);
 }
 .chip--file { border-color: #c9d6ea; color: var(--blue); background: #eff4fc; }
+.chip--pin { border-color: transparent; color: #fff; background: var(--red); margin-right: 8px; vertical-align: 2px; }
 
 .empty {
   padding: 72px 28px;

@@ -1,0 +1,88 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import {
+  envOf, str, clientIp, isLocked, recordFailure, clearFailures, verifyPassword,
+  signSession, cookieOptions, SESSION_COOKIE, audit, type AdminRow,
+} from '../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const nextRaw = Astro.url.searchParams.get('next') || '/admin';
+const next = nextRaw.startsWith('/admin') ? nextRaw : '/admin';
+if (Astro.locals.admin) return Astro.redirect(next);
+
+let error = '';
+let username = '';
+
+if (Astro.request.method === 'POST') {
+  const ip = clientIp(Astro.request);
+  const fd = await Astro.request.formData();
+  username = str(fd, 'username', 64).toLowerCase();
+  const password = str(fd, 'password', 200);
+
+  if (await isLocked(env.DB, ip)) {
+    error = '로그인 실패가 많아 15분 동안 잠겼습니다. 잠시 후 다시 시도하세요.';
+  } else if (!username || !password) {
+    error = '아이디와 비밀번호를 입력하세요.';
+  } else {
+    const row = await env.DB.prepare('SELECT * FROM admins WHERE username = ?').bind(username).first<AdminRow>();
+    const ok = row ? await verifyPassword(password, row) : false;
+    if (row && ok) {
+      await clearFailures(env.DB, ip);
+      await env.DB.prepare("UPDATE admins SET last_login_at = datetime('now') WHERE id = ?").bind(row.id).run();
+      await audit(env.DB, row.username, 'login', ip);
+      const token = await signSession(env.SESSION_SECRET, { username: row.username, name: row.name });
+      Astro.cookies.set(SESSION_COOKIE, token, cookieOptions(Astro.url.protocol === 'https:'));
+      return Astro.redirect(next);
+    }
+    await recordFailure(env.DB, ip);
+    error = '아이디 또는 비밀번호가 맞지 않습니다.';
+  }
+}
+---
+
+<Admin title="로그인" bare>
+  <main class="login">
+    <form class="login__card" method="post">
+      <img class="login__logo" src="/brand/logo-stack.svg" alt="KoreTech Investment" />
+      <h1 class="login__h">홈페이지 관리자</h1>
+      {error && <p class="a-err" role="alert">{error}</p>}
+      <div class="f">
+        <label for="u">아이디</label>
+        <input id="u" name="username" type="text" autocomplete="username" required value={username} autofocus />
+      </div>
+      <div class="f">
+        <label for="p">비밀번호</label>
+        <input id="p" name="password" type="password" autocomplete="current-password" required />
+      </div>
+      <button class="a-btn a-btn--primary login__btn" type="submit">로그인</button>
+      <p class="login__note">비밀번호를 잊으셨다면 홈페이지 유지보수 담당자에게 연락하세요.</p>
+    </form>
+  </main>
+</Admin>
+
+<style>
+  .login {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(50% 60% at 80% 10%, rgba(10, 76, 160, 0.16), transparent 70%),
+      radial-gradient(40% 50% at 10% 90%, rgba(194, 55, 55, 0.1), transparent 70%),
+      #f3f4f7;
+  }
+  .login__card {
+    width: min(100%, 400px);
+    padding: 40px 34px 32px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: 0 30px 70px rgba(16, 24, 40, 0.12);
+  }
+  .login__logo { width: 168px; margin: 0 auto 22px; }
+  .login__h { text-align: center; font-size: 1.25rem; margin-bottom: 26px; }
+  .login__btn { width: 100%; margin-top: 24px; padding: 14px; }
+  .login__note { margin-top: 16px; text-align: center; font-size: 0.8125rem; color: var(--muted-2); }
+</style>

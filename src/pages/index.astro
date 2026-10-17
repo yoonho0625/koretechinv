@@ -1,36 +1,39 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import HeroJourney from '../components/HeroJourney.astro';
-import { COMPANY, PROCESS, SECTORS, SERVICES, url } from '../lib/site';
+import MapBlock from '../components/MapBlock.astro';
+import { COMPANY, PROCESS, SECTORS, SERVICES } from '../lib/site';
+import { envOf, fmtDate, type Notice, type Portfolio } from '../lib/server';
 
-const live = <T extends { data: { draft?: boolean } }>(c: T[]) => c.filter((e) => !e.data.draft);
+// 공지·포트폴리오가 관리자 페이지에서 바로 반영되도록 요청 때 그린다
+export const prerender = false;
 
-const disclosures = live(await getCollection('disclosure'))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 4);
-const news = live(await getCollection('news'))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 4);
-const portfolio = live(await getCollection('portfolio'))
-  .sort((a, b) => b.data.order - a.data.order)
-  .slice(0, 6);
+const env = envOf(Astro.locals);
+const notices = (
+  await env.DB.prepare(
+    `SELECT n.*, (SELECT COUNT(*) FROM files f WHERE f.owner = 'notice' AND f.owner_id = n.id) AS file_count
+       FROM notices n WHERE n.published = 1
+      ORDER BY n.pinned DESC, n.post_date DESC, n.id DESC LIMIT 5`
+  ).all<Notice & { file_count: number }>()
+).results ?? [];
+const portfolio = (
+  await env.DB.prepare('SELECT * FROM portfolio WHERE published = 1 ORDER BY sort DESC, id DESC LIMIT 6').all<Portfolio>()
+).results ?? [];
 
-const fmt = (d: Date) =>
-  `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+Astro.response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
 ---
 
 <Base transparentHeader>
   <HeroJourney />
 
-  <!-- 관심 분야 띠 ------------------------------------------------------- -->
+  <!-- 관심 분야 띠 -->
   <div class="marquee" aria-label="주요 관심 투자 분야">
     <div class="marquee__track">
       {[0, 1].map(() => SECTORS.map((s) => <span class="marquee__item">{s}</span>))}
     </div>
   </div>
 
-  <!-- ABOUT ------------------------------------------------------------- -->
+  <!-- ABOUT -->
   <section class="section" id="about">
     <div class="wrap grid-editorial">
       <p class="label reveal">About us</p>
@@ -41,55 +44,52 @@ const fmt = (d: Date) =>
           신기술사업금융회사입니다.
         </h2>
         <p class="lead reveal" data-delay="1" style="margin-top:28px">
-          신기술사업자 및 벤처기업에 대한 다양한 방법의 투자 또는 융자와
-          경영 및 기술의 지도를 전문으로 합니다.
+          유망 중소·벤처기업에 대한 투자 또는 융자와 경영 및 기술의 지도를 전문으로 합니다.
         </p>
-        <a class="btn btn--ghost reveal" data-delay="2" style="margin-top:34px" href={url('/about/overview')}>
+        <a class="btn btn--ghost reveal" data-delay="2" style="margin-top:34px" href="/about/overview">
           회사소개 <span class="arrow" aria-hidden="true">→</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- 지표 (벤토 그리드) --------------------------------------------------- -->
+  <!-- 회사 개요 (벤토) -->
   <section class="section section--tint">
     <div class="wrap">
       <div class="bento reveal">
         <article class="bento__tile bento__tile--hero">
-          <p class="bento__k">납입자본금</p>
-          <p class="bento__big">
-            <span class="num" data-count="120">0</span><em>억원</em>
+          <p class="bento__k">Mission</p>
+          <p class="bento__statement">
+            대한민국<br />핵심 기술기업의<br /><span>성장 파트너</span>
           </p>
-          <p class="bento__note">
-            2026년 6월 설립 후 유상증자를 통해 납입자본금 120억원을 확보했습니다.
-          </p>
+          <p class="bento__note">기술의 경쟁력과 사업화 가능성을 면밀히 검토하고, 투자 이후에도 경영과 기술 자문으로 함께합니다.</p>
           <span class="bento__orb" aria-hidden="true"></span>
         </article>
 
         <article class="bento__tile">
           <p class="bento__k">설립</p>
-          <p class="bento__v"><span class="num" data-count="2026" data-plain="1">0</span>.06</p>
+          <p class="bento__v"><span class="num" data-count="2026" data-plain="1">2026</span>.06.05</p>
         </article>
 
         <article class="bento__tile">
           <p class="bento__k">업무영역</p>
-          <p class="bento__v bento__v--sm">신기술사업금융업</p>
-        </article>
-
-        <article class="bento__tile">
-          <p class="bento__k">주주구성</p>
-          <p class="bento__v bento__v--sm">㈜엘아이아이씨엠 <span class="num">100</span>%</p>
+          <p class="bento__v bento__v--sm">{COMPANY.business}</p>
         </article>
 
         <article class="bento__tile">
           <p class="bento__k">대표이사</p>
           <p class="bento__v bento__v--sm">{COMPANY.ceo}</p>
         </article>
+
+        <article class="bento__tile">
+          <p class="bento__k">소재지</p>
+          <p class="bento__v bento__v--sm">서울 강남구 · NK타워</p>
+        </article>
       </div>
     </div>
   </section>
 
-  <!-- 업무영역 ----------------------------------------------------------- -->
+  <!-- 업무영역 -->
   <section class="section">
     <div class="wrap">
       <div class="grid-editorial">
@@ -105,7 +105,7 @@ const fmt = (d: Date) =>
       <div class="cards">
         {SERVICES.map((s, i) => (
           <article class="card card-surface reveal" data-delay={String(i)}>
-            <span class="card__no">{String(i + 1).padStart(2, '0')}</span>
+            <span class={`card__no card__no--${i}`}>{String(i + 1).padStart(2, '0')}</span>
             <h3 class="card__h">{s.title}</h3>
             <p class="card__en">{s.en}</p>
             <p class="card__desc">{s.desc}</p>
@@ -118,16 +118,14 @@ const fmt = (d: Date) =>
     </div>
   </section>
 
-  <!-- 투자 프로세스 (다크) ------------------------------------------------- -->
+  <!-- 투자 프로세스 (다크) -->
   <section class="section dark-bg">
     <div class="wrap">
       <div class="grid-editorial">
         <p class="label label--onDark reveal">Investment process</p>
         <div>
           <h2 class="h2 reveal" style="color:#fff">투자 프로세스</h2>
-          <p class="reveal" data-delay="1" style="margin-top:18px;max-width:34em;font-weight:300;color:rgba(255,255,255,.7);font-size:clamp(1rem,1.4vw,1.25rem)">
-            발굴부터 사후관리까지, 정해진 절차에 따라 투명하게 검토합니다.
-          </p>
+          <p class="reveal on-dark-lead" data-delay="1">발굴부터 사후관리까지, 정해진 절차에 따라 투명하게 검토합니다.</p>
         </div>
       </div>
 
@@ -144,7 +142,7 @@ const fmt = (d: Date) =>
     </div>
   </section>
 
-  <!-- 포트폴리오 ---------------------------------------------------------- -->
+  <!-- 포트폴리오 -->
   <section class="section">
     <div class="wrap">
       <div class="sec-head reveal">
@@ -152,9 +150,7 @@ const fmt = (d: Date) =>
           <p class="label">Portfolio</p>
           <h2 class="h2" style="margin-top:14px">투자 포트폴리오</h2>
         </div>
-        <a class="btn btn--ghost" href={url('/portfolio')}>
-          전체보기 <span class="arrow" aria-hidden="true">→</span>
-        </a>
+        <a class="btn btn--ghost" href="/portfolio">전체보기 <span class="arrow" aria-hidden="true">→</span></a>
       </div>
 
       {portfolio.length === 0 ? (
@@ -162,10 +158,10 @@ const fmt = (d: Date) =>
       ) : (
         <div class="pf reveal">
           {portfolio.map((p) => (
-            <a class="pf__item card-surface" href={url(`/portfolio/${p.id}`)}>
-              <span class="pf__sector">{p.data.sector}</span>
-              <span class="pf__name">{p.data.company}</span>
-              {p.data.year && <span class="pf__year num">{p.data.year}</span>}
+            <a class="pf__item card-surface" href={`/portfolio/${p.id}`}>
+              <span class="pf__sector">{p.sector}</span>
+              <span class="pf__name">{p.company}</span>
+              {p.invest_year && <span class="pf__year num">{p.invest_year}</span>}
             </a>
           ))}
         </div>
@@ -173,84 +169,69 @@ const fmt = (d: Date) =>
     </div>
   </section>
 
-  <!-- 공시 / 뉴스 --------------------------------------------------------- -->
+  <!-- 공지사항 -->
   <section class="section section--tint">
-    <div class="wrap notice">
-      <div class="notice__col">
-        <div class="sec-head reveal">
-          <div>
-            <p class="label">Disclosure</p>
-            <h2 class="h3" style="margin-top:12px">경영공시</h2>
-          </div>
-          <a class="more" href={url('/notice/disclosure')}>더보기 <span aria-hidden="true">→</span></a>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          <p class="label">Notice</p>
+          <h2 class="h2" style="margin-top:14px">공지사항</h2>
         </div>
-        {disclosures.length === 0 ? (
-          <p class="empty reveal">등록된 공시가 없습니다.</p>
-        ) : (
-          <div class="list reveal">
-            {disclosures.map((d) => (
-              <a class="list__row" href={url(`/notice/disclosure/${d.id}`)}>
-                <span class="list__title">{d.data.title}</span>
-                <span class="list__meta">{fmt(d.data.date)}</span>
-              </a>
-            ))}
-          </div>
-        )}
+        <a class="btn btn--ghost" href="/notice">전체보기 <span class="arrow" aria-hidden="true">→</span></a>
       </div>
-
-      <div class="notice__col">
-        <div class="sec-head reveal">
-          <div>
-            <p class="label">News</p>
-            <h2 class="h3" style="margin-top:12px">뉴스</h2>
-          </div>
-          <a class="more" href={url('/notice/news')}>더보기 <span aria-hidden="true">→</span></a>
+      {notices.length === 0 ? (
+        <p class="empty reveal">등록된 공지가 없습니다.</p>
+      ) : (
+        <div class="list reveal">
+          {notices.map((n) => (
+            <a class="list__row" href={`/notice/${n.id}`}>
+              <span>
+                <span class="list__title">
+                  {n.pinned ? <span class="chip chip--pin">중요</span> : null}
+                  {n.title}
+                </span>
+                <span class="list__tags">
+                  <span class="chip">{n.category}</span>
+                  {n.file_count > 0 && <span class="chip chip--file">첨부 {n.file_count}</span>}
+                </span>
+              </span>
+              <span class="list__meta">{fmtDate(n.post_date)}</span>
+            </a>
+          ))}
         </div>
-        {news.length === 0 ? (
-          <p class="empty reveal">등록된 뉴스가 없습니다.</p>
-        ) : (
-          <div class="list reveal">
-            {news.map((n) => (
-              <a class="list__row" href={url(`/notice/news/${n.id}`)}>
-                <span class="list__title">{n.data.title}</span>
-                <span class="list__meta">{fmt(n.data.date)}</span>
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   </section>
 
-  <!-- CONTACT ------------------------------------------------------------ -->
+  <!-- 오시는 길 (투자문의 버튼 없이 연락처와 지도) -->
   <section class="cta dark-bg">
-    <div class="wrap cta__in reveal">
-      <div>
+    <div class="wrap cta__in">
+      <div class="reveal">
         <p class="label label--onDark">Contact</p>
         <h2 class="cta__h">
-          투자를 준비하고 계신가요?<br />
-          <span>사업계획서를 보내주세요.</span>
+          함께 성장할 기업을<br /><span>기다립니다.</span>
         </h2>
-        <p class="cta__p">검토 결과는 담당자가 개별적으로 회신드립니다.</p>
-        <a class="btn btn--onDark" style="margin-top:34px" href={url('/contact')}>
-          투자 문의 <span class="arrow" aria-hidden="true">→</span>
-        </a>
+        <p class="cta__p">회사소개자료를 이메일로 보내주시면 담당자가 확인 후 회신드립니다.</p>
+        <dl class="cta__info">
+          <div><dt>주소</dt><dd>{COMPANY.address}</dd></div>
+          <div><dt>전화</dt><dd class="num"><a href={`tel:${COMPANY.tel.replace(/-/g, '')}`}>{COMPANY.tel}</a></dd></div>
+          <div><dt>팩스</dt><dd class="num">{COMPANY.fax}</dd></div>
+          <div><dt>이메일</dt><dd><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></dd></div>
+        </dl>
       </div>
-      <dl class="cta__info">
-        <div><dt>T</dt><dd class="num">{COMPANY.tel}</dd></div>
-        <div><dt>E</dt><dd><a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></dd></div>
-        <div><dt>A</dt><dd>{COMPANY.addressShort}</dd></div>
-      </dl>
+      <div class="reveal" data-delay="1">
+        <MapBlock dark />
+      </div>
     </div>
   </section>
 </Base>
 
 <style>
-  /* ---------- 벤토 그리드 ---------- */
+  /* 벤토 */
   .bento {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: minmax(148px, auto);
+    grid-auto-rows: minmax(150px, auto);
     gap: 14px;
   }
   .bento__tile {
@@ -270,7 +251,7 @@ const fmt = (d: Date) =>
   .bento__tile--hero {
     grid-column: span 2;
     grid-row: span 2;
-    background: linear-gradient(155deg, #0f1a30 0%, #0a1526 55%, #101c33 100%);
+    background: linear-gradient(155deg, #0e1a31 0%, #0a1426 55%, #101c33 100%);
     border-color: transparent;
     color: #fff;
     padding: 34px 36px;
@@ -282,57 +263,41 @@ const fmt = (d: Date) =>
     width: 62%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(74, 128, 224, 0.5) 0%, transparent 68%);
+    background: radial-gradient(circle, rgba(79, 139, 234, 0.5) 0%, transparent 68%);
     pointer-events: none;
   }
   .bento__k {
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--muted-2);
   }
   .bento__tile--hero .bento__k { color: var(--blue-lift); }
-  .bento__big {
+  .bento__statement {
     position: relative;
-    font-size: clamp(3rem, 7vw, 5.25rem);
+    font-size: clamp(1.875rem, 3.6vw, 2.875rem);
     font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.05em;
-    background: linear-gradient(120deg, #ffffff 0%, #a8c8ff 100%);
+    line-height: 1.22;
+    letter-spacing: -0.045em;
+    color: #fff;
+  }
+  .bento__statement span {
+    background: linear-gradient(120deg, #ffffff 0%, #a9c8ff 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .bento__big em {
-    font-style: normal;
-    font-size: 1.25rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    margin-left: 8px;
-    -webkit-text-fill-color: rgba(255, 255, 255, 0.72);
-  }
-  .bento__note {
-    position: relative;
-    font-size: 0.875rem;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.6);
-    max-width: 30ch;
-  }
-  .bento__v {
-    font-size: clamp(1.375rem, 2.3vw, 1.875rem);
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    color: var(--ink);
-  }
-  .bento__v--sm { font-size: clamp(1rem, 1.5vw, 1.1875rem); font-weight: 600; }
+  .bento__note { position: relative; font-size: 0.9375rem; line-height: 1.7; color: rgba(255, 255, 255, 0.62); max-width: 34ch; }
+  .bento__v { font-size: clamp(1.375rem, 2.3vw, 1.875rem); font-weight: 700; letter-spacing: -0.035em; color: var(--ink); }
+  .bento__v--sm { font-size: clamp(1.0625rem, 1.5vw, 1.25rem); font-weight: 600; }
   @media (max-width: 900px) {
     .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .bento__tile--hero { grid-column: span 2; grid-row: span 1; }
   }
 
-  /* ---------- 업무영역 카드 ---------- */
+  /* 업무영역 카드 — 번호 원은 CI 3색 (검·빨·파) */
   .cards {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -343,27 +308,27 @@ const fmt = (d: Date) =>
   .card__no {
     display: inline-grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: var(--grad-blue);
     color: #fff;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0.02em;
   }
-  .card:nth-child(2) .card__no { background: linear-gradient(135deg, #1a55bd 0%, #7a5ba8 100%); }
-  .card:nth-child(3) .card__no { background: linear-gradient(135deg, #a4494f 0%, #c83c39 100%); }
-  .card__h { margin: 22px 0 0; font-size: 1.4375rem; }
+  .card__no--0 { background: var(--black); }
+  .card__no--1 { background: var(--red); }
+  .card__no--2 { background: var(--blue); }
+  .card__h { margin: 22px 0 0; font-size: 1.5rem; }
   .card__en {
     margin: 6px 0 0;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     letter-spacing: 0.02em;
     color: var(--muted-2);
   }
-  .card__desc { margin: 18px 0 0; font-size: 0.9375rem; color: var(--muted); line-height: 1.78; }
+  .card__desc { margin: 18px 0 0; font-size: 1rem; color: var(--muted); line-height: 1.78; }
   .card__list {
     margin: 24px 0 0;
     padding: 20px 0 0;
@@ -373,17 +338,17 @@ const fmt = (d: Date) =>
     flex-direction: column;
     gap: 9px;
   }
-  .card__list li { position: relative; padding-left: 17px; font-size: 0.875rem; }
+  .card__list li { position: relative; padding-left: 17px; font-size: 0.9375rem; }
   .card__list li::before {
     content: '';
-    position: absolute; left: 0; top: 0.62em;
+    position: absolute; left: 0; top: 0.66em;
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--red);
-    opacity: 0.85;
   }
   @media (max-width: 900px) { .cards { grid-template-columns: 1fr; } }
 
-  /* ---------- 프로세스 (다크) ---------- */
+  /* 프로세스 (다크) */
+  .on-dark-lead { margin-top: 18px; max-width: 34em; font-weight: 300; color: rgba(255, 255, 255, 0.72); font-size: clamp(1.0625rem, 1.4vw, 1.3125rem); }
   .steps {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -401,116 +366,48 @@ const fmt = (d: Date) =>
     backdrop-filter: blur(6px);
     transition: background 0.3s var(--ease), transform 0.3s var(--ease-out), border-color 0.3s var(--ease);
   }
-  .step:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(90, 146, 238, 0.55);
-    transform: translateY(-4px);
-  }
-  .step__no {
-    display: block;
-    font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    color: var(--cyan-lift);
-  }
-  .step__h { margin: 16px 0 0; font-size: 1.0625rem; color: #fff; }
-  .step__en {
-    margin: 5px 0 0;
-    font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.42);
-  }
-  .step__desc { margin: 14px 0 0; font-size: 0.875rem; color: rgba(255, 255, 255, 0.62); line-height: 1.72; }
+  .step:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(79, 139, 234, 0.55); transform: translateY(-4px); }
+  .step__no { display: block; font-family: Sora, Pretendard, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.12em; color: var(--cyan-lift); }
+  .step__h { margin: 16px 0 0; font-size: 1.1875rem; color: #fff; }
+  .step__en { margin: 5px 0 0; font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.45); }
+  .step__desc { margin: 14px 0 0; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.66); line-height: 1.72; }
   @media (max-width: 1000px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
 
-  /* ---------- 섹션 헤더 ---------- */
-  .sec-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 32px;
-  }
-  .more { font-size: 0.875rem; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; }
-  .more:hover { color: var(--blue); }
+  /* 섹션 헤더 */
+  .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 32px; }
 
-  /* ---------- 포트폴리오 ---------- */
+  /* 포트폴리오 */
   .pf { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-  .pf__item {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 26px 28px;
-    text-decoration: none;
-  }
-  .pf__sector {
-    font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    color: var(--blue);
-  }
+  .pf__item { display: flex; flex-direction: column; gap: 8px; padding: 26px 28px; text-decoration: none; }
+  .pf__sector { font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.05em; color: var(--blue); }
   .pf__name { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; }
   .pf__item:hover .pf__name { color: var(--blue); }
   .pf__year { font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; color: var(--muted-2); }
 
-  /* ---------- 공시·뉴스 2단 ---------- */
-  .notice {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(36px, 5vw, 56px);
-  }
-  @media (max-width: 900px) { .notice { grid-template-columns: 1fr; } }
-
-  /* ---------- CTA ---------- */
+  /* 오시는 길 */
   .cta__in {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    gap: clamp(32px, 6vw, 72px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(32px, 5vw, 64px);
     align-items: center;
     padding-block: clamp(70px, 9vw, 116px);
   }
-  .cta__h {
-    margin: 18px 0 0;
-    font-size: clamp(1.75rem, 3.4vw, 2.75rem);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 1.28;
-    color: #fff;
-  }
+  .cta__h { margin: 18px 0 0; font-size: clamp(1.875rem, 3.4vw, 2.75rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.26; color: #fff; }
   .cta__h span { color: rgba(255, 255, 255, 0.5); }
-  .cta__p { margin: 20px 0 0; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.6); }
-  .cta__info {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 26px 28px;
-    border-radius: var(--r);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-  }
+  .cta__p { margin: 18px 0 0; font-size: 1rem; color: rgba(255, 255, 255, 0.66); }
+  .cta__info { margin: 28px 0 0; display: flex; flex-direction: column; }
   .cta__info > div {
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-columns: 64px minmax(0, 1fr);
     gap: 12px;
     align-items: baseline;
-    padding-block: 12px;
+    padding-block: 13px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
-  .cta__info > div + div { border-top: 1px solid rgba(255, 255, 255, 0.08); }
-  .cta__info dt {
-    font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--cyan-lift);
-    letter-spacing: 0.1em;
-  }
-  .cta__info dd { margin: 0; font-size: 0.875rem; color: rgba(255, 255, 255, 0.78); }
-  .cta__info a { color: inherit; }
-  .cta__info a:hover { color: #fff; }
+  .cta__info dt { font-size: 0.875rem; font-weight: 600; color: var(--cyan-lift); }
+  .cta__info dd { margin: 0; font-size: 0.9375rem; color: rgba(255, 255, 255, 0.84); }
+  .cta__info a { color: inherit; text-decoration: none; }
+  .cta__info a:hover { color: #fff; text-decoration: underline; }
   @media (max-width: 900px) { .cta__in { grid-template-columns: 1fr; } }
 </style>

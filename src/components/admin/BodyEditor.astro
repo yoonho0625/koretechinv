@@ -1,0 +1,93 @@
+---
+/** 본문 편집기 — 서식 단추 + 미리보기. 저장 형식은 마크다운(홈페이지와 같은 방식으로 그려진다). */
+interface Props { name?: string; value?: string; label?: string }
+const { name = 'body', value = '', label = '본문' } = Astro.props;
+---
+
+<div class="f be" data-be>
+  <div class="be__top">
+    <span class="f__label">{label}</span>
+    <div class="be__tabs" role="tablist">
+      <button type="button" class="is-on" data-tab="write">쓰기</button>
+      <button type="button" data-tab="preview">미리보기</button>
+    </div>
+  </div>
+  <div class="be__bar" data-bar>
+    <button type="button" data-md="bold" title="굵게"><b>B</b></button>
+    <button type="button" data-md="h2" title="소제목">제목</button>
+    <button type="button" data-md="ul" title="글머리 목록">• 목록</button>
+    <button type="button" data-md="ol" title="번호 목록">1. 목록</button>
+    <button type="button" data-md="quote" title="인용">인용</button>
+    <button type="button" data-md="link" title="링크">링크</button>
+    <button type="button" data-md="table" title="표">표</button>
+  </div>
+  <textarea name={name} data-input placeholder="내용을 입력하세요. 줄바꿈은 그대로 반영됩니다.">{value}</textarea>
+  <div class="be__preview prose" data-preview hidden></div>
+  <p class="f__hint">첨부파일만 올리는 공시라면 본문은 비워 두어도 됩니다.</p>
+</div>
+
+<style>
+  .be__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .be__tabs { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface); }
+  .be__tabs button { border: 0; background: transparent; font: inherit; font-size: 0.8125rem; font-weight: 700; padding: 6px 14px; border-radius: 8px; color: var(--muted); cursor: pointer; }
+  .be__tabs button.is-on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+  .be__bar { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; border: 1px solid var(--line-2); border-bottom: 0; border-radius: 10px 10px 0 0; background: #fafafb; }
+  .be__bar button { border: 1px solid transparent; background: transparent; font: inherit; font-size: 0.8125rem; padding: 6px 10px; border-radius: 7px; cursor: pointer; color: var(--ink); }
+  .be__bar button:hover { background: #fff; border-color: var(--line); }
+  .be textarea { border-radius: 0 0 10px 10px !important; }
+  .be__preview { min-height: 260px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; }
+  .be__preview[hidden] { display: none; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-be]').forEach((root) => {
+    const ta = root.querySelector<HTMLTextAreaElement>('[data-input]')!;
+    const pv = root.querySelector<HTMLElement>('[data-preview]')!;
+    const bar = root.querySelector<HTMLElement>('[data-bar]')!;
+
+    const wrap = (before: string, after = '', placeholder = '') => {
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      const sel = ta.value.slice(s, e) || placeholder;
+      ta.setRangeText(before + sel + after, s, e, 'end');
+      ta.focus();
+    };
+    const linePrefix = (prefix: (i: number) => string) => {
+      const s = ta.selectionStart, e = ta.selectionEnd;
+      const start = ta.value.lastIndexOf('\n', s - 1) + 1;
+      const block = ta.value.slice(start, e) || '내용';
+      const out = block.split('\n').map((l, i) => prefix(i) + l).join('\n');
+      ta.setRangeText(out, start, e, 'end');
+      ta.focus();
+    };
+    const ACT: Record<string, () => void> = {
+      bold: () => wrap('**', '**', '굵은 글자'),
+      h2: () => linePrefix(() => '## '),
+      ul: () => linePrefix(() => '- '),
+      ol: () => linePrefix((i) => `${i + 1}. `),
+      quote: () => linePrefix(() => '> '),
+      link: () => wrap('[', '](https://)', '링크 글자'),
+      table: () => wrap('\n| 구분 | 내용 |\n| --- | --- |\n| 항목 | 값 |\n'),
+    };
+    bar.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-md]');
+      if (b) ACT[b.dataset.md!]?.();
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((tab) =>
+      tab.addEventListener('click', async () => {
+        const preview = tab.dataset.tab === 'preview';
+        root.querySelectorAll('[data-tab]').forEach((t) => t.classList.toggle('is-on', t === tab));
+        ta.hidden = preview;
+        bar.hidden = preview;
+        pv.hidden = !preview;
+        if (preview) {
+          pv.textContent = '불러오는 중…';
+          const fd = new FormData();
+          fd.set('body', ta.value);
+          const res = await fetch('/admin/preview', { method: 'POST', body: fd });
+          pv.innerHTML = res.ok ? (await res.text()) || '<p style="color:#999">내용이 없습니다.</p>' : '미리보기를 불러오지 못했습니다.';
+        }
+      })
+    );
+  });
+</script>

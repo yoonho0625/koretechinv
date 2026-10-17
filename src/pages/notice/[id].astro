@@ -1,0 +1,96 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import { envOf, notFound, filesOf, fileUrl, fmtDate, humanSize, renderBody, extOf, type Notice } from '../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const id = Number(Astro.params.id);
+const isAdmin = !!Astro.locals.admin;
+const n = Number.isInteger(id)
+  ? await env.DB.prepare(`SELECT * FROM notices WHERE id = ? ${isAdmin ? '' : 'AND published = 1'}`).bind(id).first<Notice>()
+  : null;
+if (!n) return notFound(Astro.locals, Astro.url);
+
+const files = await filesOf(env.DB, 'notice', n.id);
+const order = 'ORDER BY pinned DESC, post_date DESC, id DESC';
+const list = (await env.DB.prepare(`SELECT id, title FROM notices WHERE published = 1 ${order}`).all<{ id: number; title: string }>()).results ?? [];
+const idx = list.findIndex((x) => x.id === n.id);
+const prev = idx > 0 ? list[idx - 1] : null;
+const next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
+const body = renderBody(n.body);
+
+Astro.response.headers.set('Cache-Control', isAdmin ? 'no-store' : 'public, max-age=60, s-maxage=60');
+---
+
+<Base title={n.title} description={`공지사항 — ${n.title}`}>
+  <PageHero en="Notice" title="공지사항" />
+
+  <article class="section">
+    <div class="wrap">
+      {!n.published && (
+        <p class="draft-bar">작성중인 글입니다 — 관리자에게만 보입니다. <a href={`/admin/notices/${n.id}`}>편집하기</a></p>
+      )}
+      <header class="post__head">
+        <span class="chip">{n.category}</span>
+        <h2 class="post__title">{n.title}</h2>
+        <p class="post__date num">{fmtDate(n.post_date)}</p>
+      </header>
+
+      {files.length > 0 && (
+        <div class="files">
+          <p class="files__label">첨부파일 {files.length}</p>
+          <ul class="files__list">
+            {files.map((f) => (
+              <li>
+                <a href={fileUrl(f)}>
+                  <span class="files__icon" aria-hidden="true">{extOf(f.name).toUpperCase().slice(0, 4)}</span>
+                  <span class="files__name">{f.name}</span>
+                  <span class="files__size">{humanSize(f.size)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div class="prose post__body" set:html={body} />
+
+      <nav class="pager" aria-label="이전 다음 글">
+        {prev ? (
+          <a class="pager__a" href={`/notice/${prev.id}`}><span>이전 글</span><strong>{prev.title}</strong></a>
+        ) : <span class="pager__a is-off"><span>이전 글</span><strong>없음</strong></span>}
+        <a class="pager__list" href="/notice">목록</a>
+        {next ? (
+          <a class="pager__a pager__a--next" href={`/notice/${next.id}`}><span>다음 글</span><strong>{next.title}</strong></a>
+        ) : <span class="pager__a pager__a--next is-off"><span>다음 글</span><strong>없음</strong></span>}
+      </nav>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .draft-bar {
+    margin-bottom: 16px;
+    padding: 12px 18px;
+    border-radius: var(--r-sm);
+    background: #fff7e6;
+    border: 1px solid #f3d9a4;
+    font-size: 0.9375rem;
+    color: #7a5a14;
+  }
+  .draft-bar a { color: var(--blue); font-weight: 600; margin-left: 8px; }
+  .files__icon {
+    width: auto !important;
+    min-width: 42px;
+    padding: 0 8px;
+    border-radius: 6px !important;
+    font-family: Sora, Pretendard, sans-serif;
+    font-size: 0.6875rem !important;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--blue);
+  }
+  .files__size { margin-left: 4px; font-size: 0.8125rem; font-weight: 400; color: var(--muted-2); }
+</style>

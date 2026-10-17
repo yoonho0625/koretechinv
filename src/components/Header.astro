@@ -11,8 +11,8 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
 <header class:list={['hd', transparent && 'hd--over']} data-header>
   <div class="hd__in">
     <a class="hd__logo" href={url('/')} aria-label="KoreTech Investment 홈">
-      <img class="hd__logo-img hd__logo-img--dark" src={url('/brand/wordmark-dark.png')} alt="KoreTech Investment" width="700" height="121" />
-      <img class="hd__logo-img hd__logo-img--light" src={url('/brand/wordmark.png')} alt="KoreTech Investment" width="700" height="121" />
+      <img class="hd__logo-img hd__logo-img--dark" src={url('/brand/logo-line-dark.svg')} alt="KoreTech Investment" width="985" height="84" />
+      <img class="hd__logo-img hd__logo-img--light" src={url('/brand/logo-line.svg')} alt="KoreTech Investment" width="985" height="84" />
     </a>
 
     <nav class="hd__nav" aria-label="주 메뉴">
@@ -65,7 +65,7 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(18px) saturate(140%);
     border-bottom: 1px solid var(--line);
     transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
@@ -84,7 +84,7 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
   }
   /* 히어로를 지나 밝은 본문 위로 오면 밝은 유리로 바꾼다 */
   .hd--over.is-light {
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(18px) saturate(140%);
     border-bottom-color: var(--line);
   }
@@ -107,7 +107,7 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
   }
 
   .hd__logo { display: block; flex: none; }
-  .hd__logo-img { width: 168px; height: auto; }
+  .hd__logo-img { width: 236px; height: auto; }
   .hd__logo-img--dark { display: none; }
   .hd--over .hd__logo-img--dark { display: block; }
   .hd--over .hd__logo-img--light { display: none; }
@@ -207,7 +207,7 @@ const isActive = (href: string) => here.startsWith(url(href).replace(/\/$/, ''))
     .hd__nav { display: none; }
     .hd__burger { display: flex; }
     .hd__in { height: 64px; }
-    .hd__logo-img { width: 142px; }
+    .hd__logo-img { width: 188px; }
     /* 모바일에서 메뉴를 열면 배경이 흰색이 되므로 로고도 라이트 버전으로 */
     .hd--over.is-open { background: var(--paper); border-bottom-color: var(--line); }
     .hd--over.is-open .hd__logo-img--dark { display: none; }

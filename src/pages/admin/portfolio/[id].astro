@@ -1,0 +1,161 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import BodyEditor from '../../../components/admin/BodyEditor.astro';
+import FileDrop from '../../../components/admin/FileDrop.astro';
+import { envOf, str, audit, checkUpload, saveFile, deleteFile, filesOf, type Portfolio } from '../../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const who = Astro.locals.admin!.username;
+const isNew = Astro.params.id === 'new';
+const id = isNew ? 0 : Number(Astro.params.id);
+let row: Portfolio | null = null;
+if (!isNew) {
+  row = Number.isInteger(id) ? await env.DB.prepare('SELECT * FROM portfolio WHERE id = ?').bind(id).first<Portfolio>() : null;
+  if (!row) return Astro.redirect('/admin/portfolio');
+}
+
+const v = {
+  company: row?.company ?? '',
+  sector: row?.sector ?? '',
+  invest_year: row?.invest_year ? String(row.invest_year) : '',
+  stage: row?.stage ?? '',
+  summary: row?.summary ?? '',
+  website: row?.website ?? '',
+  sort: String(row?.sort ?? 0),
+  published: row?.published ?? 1,
+  body: row?.body ?? '',
+};
+const errors: string[] = [];
+
+if (Astro.request.method === 'POST') {
+  const fd = await Astro.request.formData();
+  const intent = str(fd, 'intent', 20);
+
+  if (intent === 'delete' && row) {
+    for (const f of await filesOf(env.DB, 'portfolio', row.id)) await deleteFile(env, f.id);
+    await env.DB.prepare('DELETE FROM portfolio WHERE id = ?').bind(row.id).run();
+    await audit(env.DB, who, 'portfolio.delete', row.company);
+    return Astro.redirect('/admin/portfolio?ok=deleted', 303);
+  }
+
+  v.company = str(fd, 'company', 100);
+  v.sector = str(fd, 'sector', 40);
+  v.invest_year = str(fd, 'invest_year', 4);
+  v.stage = str(fd, 'stage', 40);
+  v.summary = str(fd, 'summary', 300);
+  v.website = str(fd, 'website', 300);
+  v.sort = str(fd, 'sort', 6) || '0';
+  v.published = fd.get('published') === '1' ? 1 : 0;
+  v.body = str(fd, 'body', 50000);
+  const logo = fd.get('logo');
+  const newLogo = logo instanceof File && logo.size > 0 ? logo : null;
+  const removeLogo = fd.get('remove_logo') === '1';
+
+  if (!v.company) errors.push('기업명을 입력하세요.');
+  if (v.invest_year && !/^\d{4}$/.test(v.invest_year)) errors.push('투자연도는 네 자리 숫자로 입력하세요. (예: 2026)');
+  if (v.website && !/^https?:\/\//i.test(v.website)) errors.push('홈페이지 주소는 https:// 로 시작해야 합니다.');
+  if (!/^-?\d+$/.test(v.sort)) errors.push('정렬 순서는 숫자로 입력하세요.');
+  if (newLogo) {
+    const e = checkUpload(newLogo, true);
+    if (e) errors.push(e);
+  }
+
+  if (errors.length === 0) {
+    const year = v.invest_year ? Number(v.invest_year) : null;
+    let pid = row?.id ?? 0;
+    if (isNew) {
+      const r = await env.DB.prepare(
+        'INSERT INTO portfolio (company, sector, invest_year, stage, summary, website, body, sort, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      ).bind(v.company, v.sector, year, v.stage, v.summary, v.website, v.body, Number(v.sort), v.published).run();
+      pid = Number(r.meta.last_row_id);
+    } else {
+      await env.DB.prepare(
+        "UPDATE portfolio SET company = ?, sector = ?, invest_year = ?, stage = ?, summary = ?, website = ?, body = ?, sort = ?, published = ?, updated_at = datetime('now') WHERE id = ?"
+      ).bind(v.company, v.sector, year, v.stage, v.summary, v.website, v.body, Number(v.sort), v.published, pid).run();
+    }
+    const oldLogo = row?.logo_file_id ?? null;
+    if ((newLogo || removeLogo) && oldLogo) {
+      await deleteFile(env, oldLogo);
+      await env.DB.prepare('UPDATE portfolio SET logo_file_id = NULL WHERE id = ?').bind(pid).run();
+    }
+    if (newLogo) {
+      const fid = await saveFile(env, 'portfolio', pid, newLogo);
+      await env.DB.prepare('UPDATE portfolio SET logo_file_id = ? WHERE id = ?').bind(fid, pid).run();
+    }
+    await audit(env.DB, who, isNew ? 'portfolio.create' : 'portfolio.update', v.company);
+    return Astro.redirect(`/admin/portfolio/${pid}?ok=${isNew ? 'created' : 'saved'}`, 303);
+  }
+}
+---
+
+<Admin title={isNew ? '투자기업 추가' : '투자기업 수정'} active="portfolio">
+  <div class="a-head">
+    <div>
+      <a class="back" href="/admin/portfolio">← 포트폴리오 목록</a>
+      <h1>{isNew ? '투자기업 추가' : v.company}</h1>
+    </div>
+    {row && <a class="a-btn a-btn--ghost" href={`/portfolio/${row.id}`} target="_blank" rel="noopener">홈페이지에서 보기 ↗</a>}
+  </div>
+
+  {errors.length > 0 && (
+    <div class="a-err" role="alert"><strong>저장하지 못했습니다.</strong><ul>{errors.map((e) => <li>{e}</li>)}</ul></div>
+  )}
+
+  <form method="post" enctype="multipart/form-data">
+    <div class="a-card">
+      <div class="f-row">
+        <div class="f"><label for="company">기업명</label><input id="company" name="company" type="text" required maxlength="100" value={v.company} /></div>
+        <div class="f"><label for="sector">분야</label><input id="sector" name="sector" type="text" maxlength="40" value={v.sector} placeholder="예: 반도체" /><span class="f__hint">같은 분야끼리 홈페이지에서 묶여 보입니다</span></div>
+        <div class="f"><label for="stage">투자단계</label><input id="stage" name="stage" type="text" maxlength="40" value={v.stage} placeholder="예: Series A" /></div>
+      </div>
+      <div class="f-row" style="margin-top:18px">
+        <div class="f"><label for="invest_year">투자연도</label><input id="invest_year" name="invest_year" type="number" min="2000" max="2100" value={v.invest_year} /></div>
+        <div class="f"><label for="website">홈페이지</label><input id="website" name="website" type="url" maxlength="300" value={v.website} placeholder="https://" /></div>
+        <div class="f"><label for="sort">정렬 순서</label><input id="sort" name="sort" type="number" value={v.sort} /></div>
+      </div>
+      <div class="f" style="margin-top:18px">
+        <label for="summary">한 줄 소개</label>
+        <input id="summary" name="summary" type="text" maxlength="300" value={v.summary} placeholder="목록 카드에 보이는 짧은 소개" />
+      </div>
+    </div>
+
+    <div class="a-card">
+      {row?.logo_file_id && (
+        <div class="logo-now">
+          <img src={`/files/${row.logo_file_id}/logo`} alt="현재 로고" />
+          <label class="check"><input type="checkbox" name="remove_logo" value="1" /> 로고 지우기</label>
+        </div>
+      )}
+      <FileDrop name="logo" multiple={false} images label={row?.logo_file_id ? '로고 바꾸기' : '기업 로고'} />
+    </div>
+
+    <div class="a-card"><BodyEditor value={v.body} label="상세 소개" /></div>
+
+    <div class="a-card bar">
+      <div class="pub">
+        <label class="check"><input type="radio" name="published" value="1" checked={!!v.published} /> 공개</label>
+        <label class="check"><input type="radio" name="published" value="0" checked={!v.published} /> 작성중</label>
+      </div>
+      <button class="a-btn a-btn--primary" type="submit" name="intent" value="save">저장</button>
+    </div>
+  </form>
+
+  {row && (
+    <form method="post" class="danger" onsubmit="return confirm('이 투자기업을 삭제합니다. 되돌릴 수 없습니다. 삭제할까요?')">
+      <input type="hidden" name="intent" value="delete" />
+      <button class="a-btn a-btn--danger" type="submit">이 투자기업 삭제</button>
+    </form>
+  )}
+</Admin>
+
+<style>
+  .back { font-size: 0.875rem; color: var(--muted); text-decoration: none; }
+  .a-head h1 { margin-top: 6px; }
+  .logo-now { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .logo-now img { max-height: 56px; max-width: 180px; object-fit: contain; padding: 8px; border: 1px solid var(--line); border-radius: 10px; }
+  .bar { position: sticky; bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12); }
+  .pub { display: flex; gap: 20px; }
+  .danger { margin-top: 26px; text-align: right; }
+</style>

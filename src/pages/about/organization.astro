@@ -4,148 +4,170 @@ import PageHero from '../../components/PageHero.astro';
 import { COMPANY } from '../../lib/site';
 
 /**
- * 조직도 — 제작 초안에 조직도 이미지가 없어, 신기술사업금융회사의
- * 일반적인 구조로 초안을 구성했다. 확정안을 받으면 이 배열만 고치면 된다.
+ * 조직도 — 2026-10 미팅: 주주 이름은 싣지 않고, 본부 아래 팀은 뺀다.
+ * 바꿀 때는 아래 배열만 고친다.
  */
-const GOVERNANCE = [
-  { name: '주주총회', note: '㈜엘아이아이씨엠 100%' },
-  { name: '이사회', note: '경영 의사결정' },
-  { name: '감사', note: '내부 감사' },
-];
+const ICON = {
+  users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  board: 'M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-7 10 7',
+  shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4',
+  ceo: 'M12 2l2.6 6.3L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.7z',
+  chart: 'M3 3v18h18M7 15l4-4 3 3 6-7',
+  brief: 'M3 7h18v13H3zM8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18',
+  scale: 'M12 3v18M5 21h14M6 7h12M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z',
+};
 
 const DIVISIONS = [
-  {
-    name: '투자본부',
-    desc: '투자 발굴, 심사, 집행 및 사후관리',
-    teams: ['투자심사팀', '포트폴리오관리팀'],
-  },
-  {
-    name: '경영관리본부',
-    desc: '재무·회계, 인사·총무, 공시 업무',
-    teams: ['경영지원팀', '재무회계팀'],
-  },
-  {
-    name: '준법감시인',
-    desc: '내부통제기준 준수 여부 점검',
-    teams: ['리스크관리', '내부통제'],
-  },
+  { name: '투자본부', en: 'Investment', desc: '투자 발굴·심사·집행 및 사후관리', icon: ICON.chart, tone: 'black' },
+  { name: '경영관리본부', en: 'Management', desc: '재무·회계, 인사·총무, 공시 업무', icon: ICON.brief, tone: 'red' },
+  { name: '준법감시인', en: 'Compliance', desc: '내부통제기준 준수 여부 점검', icon: ICON.scale, tone: 'blue' },
 ];
 ---
 
 <Base title="조직도" description={`${COMPANY.nameKoShort}의 조직 구성입니다.`}>
-  <PageHero en="Organization" title="조직도" group="About us" />
+  <PageHero en="Organization" title="조직도" group="About us" desc="투자와 관리, 준법감시가 서로를 견제하며 균형 있게 일합니다." />
 
   <section class="section">
     <div class="wrap">
-      <div class="chart reveal">
-        <div class="chart__top">
-          {GOVERNANCE.map((g) => (
-            <div class="node node--gov">
-              <strong>{g.name}</strong>
-              <span>{g.note}</span>
-            </div>
-          ))}
+      <div class="org reveal">
+        <div class="row">
+          <div class="node node--gov">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICON.users} /></svg>
+            <strong>주주총회</strong>
+          </div>
         </div>
+        <span class="v" aria-hidden="true"></span>
 
-        <div class="chart__stem" aria-hidden="true"></div>
-
-        <div class="node node--ceo">
-          <strong>대표이사</strong>
-          <span>{COMPANY.ceo}</span>
+        <div class="row row--board">
+          <div class="node node--gov">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICON.board} /></svg>
+            <strong>이사회</strong>
+          </div>
+          <span class="h" aria-hidden="true"></span>
+          <div class="node node--audit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICON.shield} /></svg>
+            <strong>감사</strong>
+          </div>
         </div>
+        <span class="v" aria-hidden="true"></span>
 
-        <div class="chart__stem" aria-hidden="true"></div>
-        <div class="chart__bar" aria-hidden="true"></div>
+        <div class="row">
+          <div class="node node--ceo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICON.ceo} /></svg>
+            <span class="node__en">CEO</span>
+            <strong>대표이사</strong>
+            <span class="node__name">{COMPANY.ceo}</span>
+          </div>
+        </div>
+        <span class="v" aria-hidden="true"></span>
 
-        <div class="chart__divs">
+        <div class="divs">
+          <span class="bar" aria-hidden="true"></span>
           {DIVISIONS.map((d) => (
-            <div class="branch">
-              <div class="branch__stem" aria-hidden="true"></div>
-              <div class="node node--div">
+            <div class={`div div--${d.tone}`}>
+              <span class="div__stem" aria-hidden="true"></span>
+              <div class="div__card">
+                <span class="div__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={d.icon} /></svg></span>
+                <span class="div__en">{d.en}</span>
                 <strong>{d.name}</strong>
-                <span>{d.desc}</span>
+                <span class="div__desc">{d.desc}</span>
               </div>
-              <ul class="branch__teams">
-                {d.teams.map((t) => <li>{t}</li>)}
-              </ul>
             </div>
           ))}
         </div>
       </div>
-
-      <p class="note reveal">
-        ※ 위 조직도는 표준 구성에 따른 초안입니다. 확정된 조직도를 전달해 주시면 반영합니다.
-      </p>
     </div>
   </section>
 </Base>
 
 <style>
-  .chart { display: flex; flex-direction: column; align-items: center; }
+  .org { display: flex; flex-direction: column; align-items: center; }
+  .row { display: flex; justify-content: center; align-items: center; }
+  .row--board { position: relative; }
+  .v { display: block; width: 2px; height: 34px; background: var(--line-2); }
+  .h { display: block; width: 36px; height: 2px; background: var(--line-2); }
 
-  .chart__top { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-  .chart__stem { width: 1px; height: 30px; background: var(--line-2); }
-  .chart__bar { width: min(100%, 760px); height: 1px; background: var(--line-2); }
+  svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
   .node {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 18px 26px;
-    border: 1px solid var(--line);
-    border-radius: var(--r-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 26px;
+    border-radius: var(--r-pill);
     background: var(--paper);
+    border: 1px solid var(--line);
     box-shadow: var(--shadow-1);
-    text-align: center;
-    min-width: 172px;
+    font-size: 1.0625rem;
   }
-  .node strong { font-size: 1rem; font-weight: 600; }
-  .node span { font-size: 0.8125rem; color: var(--muted); }
+  .node strong { font-weight: 700; letter-spacing: -0.02em; }
+  .node--gov { color: var(--ink); }
+  .node--gov svg { color: var(--blue); }
+  .node--audit { color: var(--muted); background: var(--surface); border-style: dashed; }
+  .node--audit svg { color: var(--muted-2); }
+  /* 감사는 이사회 옆에 붙되, 이사회가 세로선 정중앙에 오도록 오른쪽에 띄운다 */
+  .row--board .h,
+  .row--board .node--audit { position: absolute; left: 100%; }
+  .row--board .h { top: 50%; }
+  .row--board .node--audit { margin-left: 36px; white-space: nowrap; }
 
-  .node--gov { background: var(--surface); }
   .node--ceo {
-    border-color: transparent;
-    background: var(--grad-blue);
+    flex-direction: column;
+    gap: 4px;
+    padding: 26px 46px 24px;
+    border-radius: var(--r-lg);
+    border: 0;
     color: #fff;
-    min-width: 216px;
-    padding: 22px 32px;
-    box-shadow: 0 10px 28px rgba(18, 68, 157, 0.28);
+    background: linear-gradient(150deg, #0a4ca0 0%, #1d63c6 55%, #0a3a7c 100%);
+    box-shadow: 0 18px 44px rgba(10, 76, 160, 0.34);
+    text-align: center;
   }
-  .node--ceo span { color: rgba(255, 255, 255, 0.8); }
-  .node--div { border-top: 3px solid var(--red); border-radius: var(--r-sm); }
+  .node--ceo svg { width: 26px; height: 26px; color: #ffd27a; fill: rgba(255, 210, 122, 0.25); margin-bottom: 6px; }
+  .node__en { font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.24em; color: rgba(255, 255, 255, 0.7); }
+  .node--ceo strong { font-size: 1.375rem; }
+  .node__name { font-size: 1rem; color: rgba(255, 255, 255, 0.85); }
 
-  .chart__divs {
+  .divs {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 20px;
-    width: min(100%, 760px);
+    gap: 22px;
+    width: min(100%, 940px);
   }
-  .branch { display: flex; flex-direction: column; align-items: center; }
-  .branch__stem { width: 1px; height: 28px; background: var(--line-2); }
-  .branch .node { width: 100%; }
-  .branch__teams {
-    margin: 14px 0 0;
-    padding: 0;
-    list-style: none;
+  .bar { position: absolute; top: 0; left: calc(100% / 6); right: calc(100% / 6); height: 2px; background: var(--line-2); }
+  .div { display: flex; flex-direction: column; align-items: center; }
+  .div__stem { width: 2px; height: 30px; background: var(--line-2); }
+  .div__card {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-  .branch__teams li {
-    font-size: 0.8125rem;
-    color: var(--muted);
+    align-items: center;
     text-align: center;
-    padding: 10px 12px;
-    background: var(--surface);
+    gap: 6px;
+    padding: 28px 22px 26px;
+    background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: var(--r-xs);
+    border-radius: var(--r);
+    box-shadow: var(--shadow-1);
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
   }
+  .div__card:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+  .div__icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; color: #fff; margin-bottom: 8px; }
+  .div__icon svg { width: 24px; height: 24px; }
+  .div--black .div__icon { background: var(--black); }
+  .div--red .div__icon { background: var(--red); }
+  .div--blue .div__icon { background: var(--blue); }
+  .div__en { font-family: Sora, Pretendard, sans-serif; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted-2); }
+  .div__card strong { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.03em; }
+  .div__desc { font-size: 0.9375rem; color: var(--muted); }
 
-  .note { margin-top: 44px; font-size: 0.8125rem; color: var(--muted-2); text-align: center; }
-
-  @media (max-width: 780px) {
-    .chart__divs { grid-template-columns: 1fr; gap: 6px; }
-    .chart__bar { display: none; }
+  @media (max-width: 760px) {
+    /* 모바일에서도 감사는 이사회 옆(보고 계통 밖)에 둔다 */
+    .h { width: 12px; }
+    .row--board .node--audit { margin-left: 12px; padding: 12px 16px; font-size: 0.9375rem; }
+    .node { padding: 13px 20px; }
+    .divs { grid-template-columns: 1fr; gap: 0; width: 100%; }
+    .bar { display: none; }
+    .div__stem { height: 20px; }
   }
 </style>

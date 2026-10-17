@@ -1,0 +1,64 @@
+---
+/** 첨부파일 고르기 — 끌어다 놓기 + 고른 파일 목록 + 크기 경고 */
+import { ALLOWED_EXT, IMAGE_EXT } from '../../lib/server';
+interface Props { name?: string; multiple?: boolean; images?: boolean; label?: string }
+const { name = 'files', multiple = true, images = false, label = '파일 첨부' } = Astro.props;
+const exts = images ? IMAGE_EXT : ALLOWED_EXT;
+---
+
+<div class="f fd" data-fd>
+  <span class="f__label">{label}</span>
+  <label class="fd__zone" data-zone>
+    <input type="file" name={name} multiple={multiple} accept={exts.map((e) => '.' + e).join(',')} data-file />
+    <span class="fd__ic" aria-hidden="true">⬆</span>
+    <span class="fd__t"><b>파일을 끌어다 놓거나 눌러서 고르세요</b><br />{images ? 'jpg · png · svg · webp' : 'hwp · pdf · 워드 · 엑셀 · 파워포인트 · zip · 이미지'} — 파일당 30MB까지</span>
+  </label>
+  <ul class="fd__list" data-list></ul>
+</div>
+
+<style>
+  .fd__zone {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border: 1.5px dashed var(--line-2);
+    border-radius: 12px;
+    background: #fafbfc;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .fd__zone:hover, .fd__zone.is-over { border-color: var(--blue); background: #f2f6fd; }
+  .fd__zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .fd__ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #e8effb; color: var(--blue); font-size: 1.1rem; flex: none; }
+  .fd__t { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+  .fd__t b { color: var(--ink); }
+  .fd__list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .fd__list li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-radius: 9px; background: #f2f6fd; font-size: 0.875rem; }
+  .fd__list li.bad { background: #fdf1f1; color: #8f2a2a; }
+</style>
+
+<script>
+  const MAX = 30 * 1024 * 1024;
+  const size = (b: number) => (b < 1048576 ? `${Math.round(b / 1024)}KB` : `${(b / 1048576).toFixed(1)}MB`);
+  document.querySelectorAll<HTMLElement>('[data-fd]').forEach((root) => {
+    const input = root.querySelector<HTMLInputElement>('[data-file]')!;
+    const zone = root.querySelector<HTMLElement>('[data-zone]')!;
+    const list = root.querySelector<HTMLElement>('[data-list]')!;
+    const render = () => {
+      list.innerHTML = '';
+      Array.from(input.files ?? []).forEach((f) => {
+        const li = document.createElement('li');
+        const bad = f.size > MAX;
+        li.className = bad ? 'bad' : '';
+        li.innerHTML = `<span></span><span>${bad ? '30MB 초과 — 올라가지 않습니다' : size(f.size)}</span>`;
+        (li.firstElementChild as HTMLElement).textContent = `새 파일 · ${f.name}`;
+        list.appendChild(li);
+      });
+    };
+    input.addEventListener('change', render);
+    ['dragenter', 'dragover'].forEach((t) => zone.addEventListener(t, () => zone.classList.add('is-over')));
+    ['dragleave', 'drop'].forEach((t) => zone.addEventListener(t, () => zone.classList.remove('is-over')));
+  });
+</script>

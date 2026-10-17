@@ -1,0 +1,54 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { envOf, type Portfolio } from '../../../lib/server';
+
+export const prerender = false;
+
+const env = envOf(Astro.locals);
+const rows = (await env.DB.prepare('SELECT * FROM portfolio ORDER BY sort DESC, invest_year DESC, id DESC').all<Portfolio>()).results ?? [];
+---
+
+<Admin title="포트폴리오" active="portfolio">
+  <div class="a-head">
+    <div>
+      <h1>포트폴리오</h1>
+      <p>투자 기업을 등록합니다. ‘정렬 순서’ 숫자가 클수록 앞에 나옵니다.</p>
+    </div>
+    <a class="a-btn a-btn--primary" href="/admin/portfolio/new">+ 투자기업 추가</a>
+  </div>
+
+  <div class="a-card">
+    {rows.length === 0 ? (
+      <p class="none">아직 등록한 투자기업이 없습니다. 홈페이지에는 ‘포트폴리오를 준비하고 있습니다’가 보입니다.</p>
+    ) : (
+      <div class="a-scroll">
+        <table class="a-table">
+          <thead><tr><th>기업</th><th>분야</th><th>투자연도</th><th>정렬</th><th>상태</th></tr></thead>
+          <tbody>
+            {rows.map((p) => (
+              <tr>
+                <td>
+                  <span class="co">
+                    {p.logo_file_id ? <img src={`/files/${p.logo_file_id}/logo`} alt="" /> : <i>{p.company.slice(0, 1)}</i>}
+                    <a class="t" href={`/admin/portfolio/${p.id}`}>{p.company}</a>
+                  </span>
+                </td>
+                <td>{p.sector || '-'}</td>
+                <td class="num">{p.invest_year ?? '-'}</td>
+                <td class="num">{p.sort}</td>
+                <td>{p.published ? <span class="pill pill--on">공개</span> : <span class="pill pill--off">작성중</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</Admin>
+
+<style>
+  .none { padding: 40px 10px; text-align: center; color: var(--muted-2); }
+  .co { display: inline-flex; align-items: center; gap: 10px; }
+  .co img, .co i { width: 34px; height: 34px; border-radius: 8px; object-fit: contain; background: var(--surface); }
+  .co i { display: grid; place-items: center; font-style: normal; font-weight: 700; color: var(--blue); }
+</style>

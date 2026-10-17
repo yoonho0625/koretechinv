@@ -1,25 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
-import { PROCESS } from '../../lib/site';
-
-const pillars = [
-  {
-    kr: '대한민국',
-    en: 'Korea',
-    body: '국내 벤처기업과 중소기업의 지속가능한 성장을 지원하여 우리나라 산업경쟁력과 금융산업 발전에 기여합니다.',
-  },
-  {
-    kr: '핵심',
-    en: 'Core',
-    body: '산업의 중심을 바꿀 수 있는 핵심 기술에 선택과 집중으로 투자합니다. 넓게 뿌리기보다 깊게 봅니다.',
-  },
-  {
-    kr: '기술',
-    en: 'Technology',
-    body: '기술의 완성도와 사업화 가능성을 함께 검증하고, 투자 이후에도 경영·기술 지도로 동행합니다.',
-  },
-];
+import { PILLARS as pillars, PROCESS } from '../../lib/site';
 ---
 
 <Base title="투자철학" description="대한민국(Korea)의 핵심(Core) 기술기업에 대한 투자를 통해 지속가능한 성장을 지원합니다.">
@@ -108,22 +90,29 @@ const pillars = [
   .pillars {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1px;
+    gap: 14px;
     margin-top: clamp(40px, 6vw, 64px);
-    background: var(--line);
-    border: 1px solid var(--line);
   }
-  .pillar { background: var(--paper); padding: clamp(28px, 3vw, 40px); }
+  .pillar {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--r);
+    padding: clamp(28px, 3vw, 40px);
+    box-shadow: var(--shadow-1);
+  }
+  .pillar:nth-child(1) { border-top: 3px solid var(--black); }
+  .pillar:nth-child(2) { border-top: 3px solid var(--red); }
+  .pillar:nth-child(3) { border-top: 3px solid var(--blue); }
   .pillar__en {
     margin: 0;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: 0.875rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--blue);
   }
   .pillar__kr { margin: 14px 0 0; font-size: 1.75rem; letter-spacing: -0.035em; }
-  .pillar__body { margin: 16px 0 0; font-size: 0.9375rem; color: var(--muted); line-height: 1.8; }
+  .pillar__body { margin: 16px 0 0; font-size: 1rem; color: var(--muted); line-height: 1.8; }
   @media (max-width: 880px) { .pillars { grid-template-columns: 1fr; } }
 
   .flow { margin: clamp(36px, 5vw, 56px) 0 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }

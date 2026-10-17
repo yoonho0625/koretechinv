@@ -1,0 +1,25 @@
+name: Old GitHub Pages URL redirect
+
+# 홈페이지는 Cloudflare Workers 로 옮겼다. 예전 github.io 주소로 들어오면 새 주소로 넘긴다.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/pages-redirect/**', '.github/workflows/pages-redirect.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./.github/pages-redirect
+      - uses: actions/deploy-pages@v4
