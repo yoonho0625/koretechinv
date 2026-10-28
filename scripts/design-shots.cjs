@@ -15,11 +15,13 @@ const go = (p, y) => p.evaluate((t) => scrollTo({ top: t, behavior: 'instant' })
     p.on('pageerror', (e) => errs.push(`${tag} JS ${e.message}`));
     p.on('console', (m) => { if (m.type() === 'error') errs.push(`${tag} C ${m.text().slice(0, 150)}`); });
   };
-  for (const k of ['a', 'b', 'c']) {
+  // KT_PAGES=home=/,b=/design/b 처럼 이름=경로 목록을 주면 그 화면만 찍는다
+  const PAGES = process.env.KT_PAGES ? process.env.KT_PAGES.split(',').map((x) => x.split('=')) : ['a', 'b', 'c'].map((k) => [k, `/design/${k}`]);
+  for (const [k, path] of PAGES) {
     const page = await browser.newPage();
     await page.setViewport({ width: 1440, height: 900 });
     watch(page, k);
-    await page.goto(`${B}/design/${k}`, { waitUntil: 'networkidle2', timeout: 90000 });
+    await page.goto(`${B}${path}`, { waitUntil: 'networkidle2', timeout: 90000 });
     await wait(3500);
     const H = await page.evaluate(() => document.querySelector('[data-hero]').offsetHeight - innerHeight);
     for (const [f, n] of [[0.02, 'h1'], [0.57, 'h3'], [0.97, 'h5']]) { await go(page, Math.round(H * f)); await wait(1800); await page.screenshot({ path: `${O}${k}_${n}.png` }); }
@@ -31,7 +33,7 @@ const go = (p, y) => p.evaluate((t) => scrollTo({ top: t, behavior: 'instant' })
     const m = await browser.newPage();
     await m.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
     watch(m, `${k}-m`);
-    await m.goto(`${B}/design/${k}`, { waitUntil: 'networkidle2', timeout: 90000 });
+    await m.goto(`${B}${path}`, { waitUntil: 'networkidle2', timeout: 90000 });
     await wait(3200);
     const H2 = await m.evaluate(() => document.querySelector('[data-hero]').offsetHeight - innerHeight);
     for (const [f, n] of [[0.02, 'mo_h1'], [0.97, 'mo_h5']]) { await go(m, Math.round(H2 * f)); await wait(1600); await m.screenshot({ path: `${O}${k}_${n}.png` }); }

@@ -1,7 +1,8 @@
 /* ============================================================
    KoreTech Investment — 디자인 시스템
-   색상은 CI 로고에서 추출한 3색에서 파생한다.
-     레드 #C83C39 · 블루 #12449D · 차콜 #30292A
+   확정 디자인: 시안 B "PAPER & INK" (2026-10-29 대표 확정)
+     밝은 종이(#F4F1EC) 위에 CI 원형. CI 블랙(#1B161C)은 큰 면·버튼·패널로,
+     CI 레드·블루는 점·선·로고에만 쓴다.
    ============================================================ */
 
 :root {
@@ -20,26 +21,26 @@
 
   /* 어두운 배경 위에서 쓰는 밝기 보정 CI 색 */
   --red-lift: #e5524d;
-  --blue-lift: #4f8bea;
+  --blue-lift: #6f9ff0;
   --cyan-lift: #52d3e8;
 
   /* 딥 그라운드 */
-  --ground: #080b12;
-  --ground-2: #0f1522;
-  --ground-3: #17203247;
+  --ground: #1b161c;
+  --ground-2: #241e26;
+  --ground-3: rgba(36, 30, 38, 0.28);
 
   /* 중성색 — 차콜의 따뜻한 기운을 이어받는다 */
   --paper: #ffffff;
-  --canvas: #faf9f8;
-  --surface: #f4f2f0;
-  --surface-2: #ebe8e5;
-  --line: #e8e4e0;
-  --line-2: #d8d2cd;
-  --muted: #6a625e;
-  --muted-2: #9a918c;
+  --canvas: #f4f1ec;
+  --surface: #ece8e2;
+  --surface-2: #e3ded7;
+  --line: #e4ded6;
+  --line-2: #cfc7bd;
+  --muted: #5f5658;
+  --muted-2: #857b7e;
 
   /* 그라디언트 */
-  --grad-blue: linear-gradient(135deg, #0a4ca0 0%, #3a74d4 100%);
+  --grad-blue: linear-gradient(135deg, #1b161c 0%, #3a3238 100%); /* 주 버튼 = CI 블랙 */
   --grad-brand: linear-gradient(110deg, #0a4ca0 0%, #4f8bea 52%, #c23737 100%);
   --grad-glow: radial-gradient(60% 60% at 50% 40%, rgba(79, 139, 234, 0.28) 0%, transparent 70%);
 
@@ -55,8 +56,8 @@
   /* 모양 */
   --r-xs: 8px;
   --r-sm: 12px;
-  --r: 18px;
-  --r-lg: 26px;
+  --r: 22px;
+  --r-lg: 28px;
   --r-pill: 999px;
 
   --shadow-1: 0 1px 2px rgba(34, 29, 30, 0.04), 0 6px 20px rgba(34, 29, 30, 0.05);
@@ -194,8 +195,8 @@ p { margin: 0; }
   inset: -20% -10%;
   z-index: -2;
   background:
-    radial-gradient(38% 46% at 78% 18%, rgba(10, 76, 160, 0.55) 0%, transparent 68%),
-    radial-gradient(30% 40% at 12% 88%, rgba(194, 55, 55, 0.24) 0%, transparent 70%);
+    radial-gradient(34% 42% at 82% 14%, rgba(10, 76, 160, 0.16) 0%, transparent 70%),
+    radial-gradient(28% 38% at 10% 90%, rgba(194, 55, 55, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 .dark-bg::after {
@@ -218,17 +219,17 @@ p { margin: 0; }
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--blue);
+  color: var(--muted);
 }
 .label::before {
   content: '';
-  width: 28px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--grad-brand);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
   flex: none;
 }
-.label--onDark { color: var(--blue-lift); }
+.label--onDark { color: rgba(244, 241, 236, 0.62); }
 .label--plain::before { display: none; }
 
 .display { font-size: var(--fs-display); font-weight: 700; letter-spacing: -0.045em; line-height: 1.02; }
@@ -282,9 +283,9 @@ p { margin: 0; }
 .btn--primary {
   background: var(--grad-blue);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(10, 76, 160, 0.26);
+  box-shadow: 0 6px 20px rgba(27, 22, 28, 0.22);
 }
-.btn--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(10, 76, 160, 0.34); }
+.btn--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(27, 22, 28, 0.3); }
 .btn--ghost { border-color: var(--line-2); color: var(--ink); background: var(--paper); }
 .btn--ghost:hover { border-color: var(--ink); background: var(--ink); color: #fff; transform: translateY(-2px); }
 .btn--onDark { border-color: rgba(255, 255, 255, 0.28); color: #fff; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); }
@@ -301,7 +302,7 @@ p { margin: 0; }
   transition: transform 0.32s var(--ease-out), box-shadow 0.32s var(--ease-out),
     border-color 0.32s var(--ease-out);
 }
-.card-surface:hover { transform: translateY(-5px); box-shadow: var(--shadow-2); border-color: var(--blue-200); }
+.card-surface:hover { transform: translateY(-5px); box-shadow: var(--shadow-2); border-color: var(--line-2); }
 
 /* ---------- 표 ---------- */
 .table-scroll { overflow-x: auto; border-radius: var(--r); }

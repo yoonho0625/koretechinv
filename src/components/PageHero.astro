@@ -14,7 +14,7 @@ const parent = group ? NAV.find((n) => n.label === group) : undefined;
 const here = Astro.url.pathname.replace(/\/$/, '');
 ---
 
-<section class="ph dark-bg">
+<section class="ph">
   <div class="wrap ph__in">
     <p class="ph__en">{en}</p>
     <h1 class="ph__h">{title}</h1>
@@ -38,57 +38,59 @@ const here = Astro.url.pathname.replace(/\/$/, '');
 </section>
 
 <style>
-  .ph { position: relative; }
-  .ph__in { position: relative; padding-block: clamp(86px, 12vw, 148px) clamp(44px, 6vw, 68px); }
+  /* 시안 B: 밝은 종이 위 큰 먹색 제목 + 빨간 점 라벨 + 검은 알약 탭 */
+  .ph { position: relative; background: var(--canvas); border-bottom: 1px solid var(--line); }
+  .ph__in { position: relative; padding-block: clamp(64px, 9vw, 120px) clamp(34px, 4.5vw, 52px); }
   .ph__en {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    margin: 0 0 16px;
+    gap: 10px;
+    margin: 0 0 18px;
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.26em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--blue-lift);
+    color: var(--muted);
   }
-  .ph__en::before {
-    content: '';
-    width: 24px;
-    height: 2px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, var(--blue-lift), var(--red-lift));
-  }
+  .ph__en::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
   .ph__h {
     margin: 0;
-    font-size: clamp(2.25rem, 5vw, 3.875rem);
-    font-weight: 700;
-    letter-spacing: -0.045em;
-    color: #fff;
+    font-size: clamp(2.5rem, 6vw, 4.75rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.055em;
+    color: var(--ink);
   }
   .ph__desc {
     margin: 22px 0 0;
     max-width: 46em;
-    font-size: clamp(0.9375rem, 1.35vw, 1.1875rem);
-    font-weight: 300;
+    font-size: clamp(1rem, 1.35vw, 1.1875rem);
     line-height: 1.74;
-    color: rgba(255, 255, 255, 0.68);
+    color: #4a4245;
   }
 
-  .ph__tabs { position: relative; border-top: 1px solid rgba(255, 255, 255, 0.12); }
-  .ph__tabs-in { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-block: 12px; }
+  .ph__tabs { position: relative; }
+  .ph__tabs-in { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-block: 0 26px; }
   .ph__tabs-in::-webkit-scrollbar { display: none; }
   .ph__tab {
     flex: none;
-    padding: 10px 20px;
+    padding: 11px 22px;
     border-radius: var(--r-pill);
+    border: 1px solid var(--line-2);
+    background: var(--paper);
     font-size: 0.9375rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    color: var(--ink);
     text-decoration: none;
     white-space: nowrap;
-    transition: color 0.22s var(--ease), background 0.22s var(--ease);
+    transition: border-color 0.22s var(--ease), background 0.22s var(--ease), color 0.22s var(--ease);
   }
-  .ph__tab:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
-  .ph__tab.is-on { color: var(--ground); background: #fff; font-weight: 600; }
+  .ph__tab:hover { border-color: var(--ink); }
+  .ph__tab.is-on { color: #fff; background: var(--ink); border-color: var(--ink); }
+  /* 휴대폰: PC처럼 탭 4개가 한 줄에 다 보이게 */
+  @media (max-width: 600px) {
+    .ph__tabs-in { gap: 6px; }
+    .ph__tab { padding: 9px 14px; font-size: 0.875rem; }
+  }
 </style>

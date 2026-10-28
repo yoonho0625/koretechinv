@@ -58,7 +58,8 @@ const settle = async (p) => {
     await m.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
     const errs = [];
     for (const p of [d, m]) p.on('pageerror', (e) => errs.push(e.message));
-    await Promise.all([d.goto(B + r, { waitUntil: 'networkidle2', timeout: 90000 }), m.goto(B + r, { waitUntil: 'networkidle2', timeout: 90000 })]);
+    await Promise.all([d.goto(B + r, { waitUntil: 'load', timeout: 90000 }), m.goto(B + r, { waitUntil: 'load', timeout: 90000 })]);
+    await wait(2500);
     await Promise.all([settle(d), settle(m)]);
     const [cd, cm] = await Promise.all([d.evaluate(collect), m.evaluate(collect)]);
     const mw = new Set(cm.words);
