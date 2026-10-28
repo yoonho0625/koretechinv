@@ -10,10 +10,10 @@ import { PILLARS as pillars, PROCESS } from '../../lib/site';
   <section class="section">
     <div class="wrap">
       <blockquote class="creed reveal">
-        <p>
-          대한민국<em>(Korea)</em>의 핵심<em>(Core)</em> 기술기업에 대한 투자를 통해
-          국내 벤처기업 및 중소기업의 <strong>지속가능한 성장</strong>을 지원하고,
-          우리나라 산업경쟁력과 금융산업 발전에 기여한다.
+        <p class="lines">
+          <span class="ln">대한민국<em>(Korea)</em>의 핵심<em>(Core)</em> 기술기업에 대한 투자를 통해</span>
+          <span class="ln">국내 벤처기업 및 중소기업의 <strong>지속가능한 성장</strong>을 지원하고,</span>
+          <span class="ln">우리나라 산업경쟁력과 금융산업 발전에 기여한다.</span>
         </p>
       </blockquote>
     </div>
@@ -75,11 +75,10 @@ import { PILLARS as pillars, PROCESS } from '../../lib/site';
     margin: 0;
     border-left: 3px solid var(--red);
     padding: 6px 0 6px clamp(22px, 4vw, 44px);
-    /* ch 는 부모 글자 크기로 계산되므로 큰 인용문에는 쓰지 않는다 */
-    max-width: 760px;
   }
   .creed p {
-    font-size: clamp(1.375rem, 3.1vw, 2.25rem);
+    /* 고객 지정 줄바꿈 3줄이 데스크톱에서 한 줄씩 들어가는 크기 */
+    font-size: clamp(1.25rem, 2.3vw, 2rem);
     font-weight: 500;
     line-height: 1.55;
     letter-spacing: -0.03em;

@@ -361,7 +361,17 @@ const stackMask = url('/brand/logo-stack-mask.svg');
         }
         return c;
       };
-      const CX = 127.4, CY = 38.0, LON_SQUEEZE = 0.8, SCALE = 0.56;
+      // 좁은 화면: 독도(131.87°E)까지 화면 안에 들도록 중심을 동쪽으로 옮기고 조금 줄인다
+      const CX = isMobile ? 128.4 : 127.4, CY = 38.0, LON_SQUEEZE = 0.8, SCALE = isMobile ? 0.5 : 0.56;
+      // 섬: [경도, 위도, 경도 반경, 위도 반경, 입자 비율] — 실제 크기로는 점 몇 개라 식별되도록 키운다
+      const ISLANDS: [number, number, number, number, number][] = [
+        [126.55, 33.4, 0.38, 0.14, 0.028],   // 제주도
+        [130.87, 37.5, 0.095, 0.075, 0.0065], // 울릉도
+        [131.86, 37.243, 0.02, 0.017, 0.0009], // 독도 서도
+        [131.885, 37.238, 0.018, 0.015, 0.0008], // 독도 동도
+      ];
+      const islandEnds: number[] = [];
+      ISLANDS.reduce((s, isl) => (islandEnds.push(s + isl[4]), s + isl[4]), 0);
 
       // ---------- 3막: 반도체 칩 + 회로 기판 (선분 목록 → 길이 비례로 입자 배치) ----------
       type Seg = [number, number, number, number];
@@ -430,11 +440,13 @@ const stackMask = url('/brand/logo-stack-mask.svg');
       let i = 0;
       while (i < N) {
         let lon: number, lat: number;
-        if (i < N * 0.028) {
+        const isl = islandEnds.findIndex((e) => i < N * e);
+        if (isl >= 0) {
+          const [ilon, ilat, rx, ry] = ISLANDS[isl];
           const a = Math.random() * Math.PI * 2;
           const r = Math.sqrt(Math.random());
-          lon = 126.55 + Math.cos(a) * r * 0.38;
-          lat = 33.4 + Math.sin(a) * r * 0.14; // 제주
+          lon = ilon + Math.cos(a) * r * rx;
+          lat = ilat + Math.sin(a) * r * ry;
         } else {
           lon = 124 + Math.random() * 7.2;
           lat = 33.8 + Math.random() * 9.4;

@@ -26,21 +26,19 @@ const year = new Date().getFullYear();
     <div class="ft__info">
       <p>{COMPANY.nameKo} <span class="ft__sep">|</span> 대표이사 {COMPANY.ceo}</p>
       <p>{COMPANY.address}</p>
-      <p class="num">
-        T. {COMPANY.tel} <span class="ft__sep">|</span> F. {COMPANY.fax}
-        <span class="ft__sep">|</span> E. <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+      <p class="num ft__contact">
+        <span class="ft__nw">T. {COMPANY.tel}</span><span class="ft__sep">|</span><span class="ft__nw">F. {COMPANY.fax}</span><span class="ft__sep">|</span><span class="ft__nw">E. <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></span>
       </p>
     </div>
     <div class="ft__legal">
       <a href={url('/legal/privacy')}>개인정보처리방침</a>
       <a href={url('/legal/credit-info')}>신용정보활용체제</a>
-      <a href={url('/legal/rate-cut-request')}>금리인하요구권 안내</a>
       <a href={url('/sitemap')}>사이트맵</a>
     </div>
   </div>
 
   <div class="ft__in ft__copy">
-    <p>© {year} {COMPANY.nameEn} All rights reserved.</p>
+    <p>© {year} {COMPANY.nameEn} <span class="ft__nw">All rights reserved.</span></p>
   </div>
 </footer>
 
@@ -116,9 +114,16 @@ const year = new Date().getFullYear();
   }
   .ft__copy p {
     font-family: Sora, Pretendard, sans-serif;
-    font-size: 0.6875rem;
-    letter-spacing: 0.06em;
-    color: rgba(255, 255, 255, 0.34);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.4);
+  }
+  .ft__nw { white-space: nowrap; }
+  .ft__contact .ft__sep { margin-inline: 0.5em; }
+  /* 좁은 화면: 구분선이 줄 끝에 홀로 남지 않도록 연락처를 줄마다 하나씩 */
+  @media (max-width: 600px) {
+    .ft__contact .ft__sep { display: none; }
+    .ft__contact .ft__nw { display: block; }
   }
 
   @media (max-width: 860px) {
