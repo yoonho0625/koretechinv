@@ -17,6 +17,8 @@ export const COMPANY = {
   domain: 'www.koretechinv.com',
   maps: {
     naver: 'https://naver.me/xk9pYSjK',
+    // 네이버 지도 앱 바로 열기(nmap://) — 좌표는 네이버 플레이스 1387571333(봉은사로 306)에서 읽은 값
+    naverApp: { lat: 37.5090977, lng: 127.040653, name: '코어테크인베스트먼트' },
     kakao: 'https://map.kakao.com/link/search/%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EB%B4%89%EC%9D%80%EC%82%AC%EB%A1%9C%20306',
     google: 'https://www.google.com/maps/search/?api=1&query=%EC%84%9C%EC%9A%B8%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EB%B4%89%EC%9D%80%EC%82%AC%EB%A1%9C%20306',
     embed: 'https://maps.google.com/maps?q=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%EB%B4%89%EC%9D%80%EC%82%AC%EB%A1%9C%20306&hl=ko&z=17&output=embed',

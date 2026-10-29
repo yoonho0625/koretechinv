@@ -14,11 +14,34 @@ const { dark = false } = Astro.props;
     ></iframe>
   </div>
   <div class="mapb__links">
-    <a href={COMPANY.maps.naver} target="_blank" rel="noopener noreferrer"><i class="dot dot--naver"></i>네이버 지도</a>
+    <a href={COMPANY.maps.naver} target="_blank" rel="noopener noreferrer" data-naver-app><i class="dot dot--naver"></i>네이버 지도</a>
     <a href={COMPANY.maps.kakao} target="_blank" rel="noopener noreferrer"><i class="dot dot--kakao"></i>카카오맵</a>
     <a href={COMPANY.maps.google} target="_blank" rel="noopener noreferrer"><i class="dot dot--google"></i>구글 지도</a>
   </div>
 </div>
+
+<script define:vars={{ app: COMPANY.maps.naverApp, web: COMPANY.maps.naver }}>
+  // 휴대폰에서는 네이버 지도 앱으로 바로 연다(카카오맵과 같게). 앱이 없으면 웹 지도로. PC는 웹 그대로.
+  document.querySelectorAll('[data-naver-app]').forEach((a) => {
+    if (a.dataset.bound) return;
+    a.dataset.bound = '1';
+    a.addEventListener('click', (e) => {
+      const ua = navigator.userAgent;
+      const android = /Android/i.test(ua);
+      const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!android && !ios) return;
+      e.preventDefault();
+      const q = `place?lat=${app.lat}&lng=${app.lng}&name=${encodeURIComponent(app.name)}&appname=${encodeURIComponent(location.hostname)}`;
+      if (android) {
+        location.href = `intent://${q}#Intent;scheme=nmap;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.nhn.android.nmap;S.browser_fallback_url=${encodeURIComponent(web)};end`;
+        return;
+      }
+      const timer = setTimeout(() => { if (!document.hidden) location.href = web; }, 1600);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); }, { once: true });
+      location.href = `nmap://${q}`;
+    });
+  });
+</script>
 
 <style>
   .mapb__frame {

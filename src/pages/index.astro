@@ -82,7 +82,7 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
           <p class="kick kick--light"><i></i>Investment process</p>
           <h2>정해진 다섯 단계로,<br />투명하게 검토합니다.</h2>
         </div>
-        <ol class="steps">
+        <ol class="steps" data-steps>
           {PROCESS.map((p) => (
             <li>
               <span class="steps__no">{p.step}</span>
@@ -186,8 +186,9 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
   .panel h2 { margin-top: 16px; font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.05em; }
   .steps { list-style: none; margin: clamp(40px, 5vw, 60px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
   .steps li { padding: 24px 22px; border-radius: 22px; background: rgba(244, 241, 236, 0.06); border: 1px solid rgba(244, 241, 236, 0.1); }
-  .steps__no { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #f4f1ec; color: #1b161c; font-family: Sora, Pretendard, sans-serif; font-weight: 800; font-size: 0.875rem; }
-  .steps li:nth-child(1) .steps__no { background: var(--red); color: #fff; }
+  .steps__no { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #f4f1ec; color: #1b161c; font-family: Sora, Pretendard, sans-serif; font-weight: 800; font-size: 0.875rem; transition: background-color 0.45s var(--ease-out), color 0.45s var(--ease-out); }
+  /* 1번은 처음부터, 2~5번은 스크롤로 그 단계에 닿으면 빨간 원으로 */
+  .steps li:nth-child(1) .steps__no, .steps li.is-on .steps__no { background: var(--red); color: #fff; }
   .steps h3 { margin-top: 18px; font-size: 1.1875rem; font-weight: 700; }
   .steps p { margin-top: 10px; font-size: 0.9375rem; line-height: 1.7; color: rgba(244, 241, 236, 0.66); }
 
@@ -225,4 +226,38 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60');
     .svc { grid-template-columns: 1fr; }
     .steps { grid-template-columns: 1fr; }
   }
+  /* PC는 다섯 단계가 한 줄이라 동시에 닿는다 — 순서대로 켜지게 시차 */
+  @media (min-width: 961px) {
+    .steps li:nth-child(3) .steps__no { transition-delay: 0.18s; }
+    .steps li:nth-child(4) .steps__no { transition-delay: 0.36s; }
+    .steps li:nth-child(5) .steps__no { transition-delay: 0.54s; }
+  }
+  @media (max-width: 600px) {
+    /* 설립일 2026.06.05 를 한 줄로 */
+    .tile:not(.tile--hero) { padding: 20px; }
+    .tile__num { font-size: clamp(1.0625rem, 5.6vw, 1.75rem); white-space: nowrap; }
+    .tile__num small { font-size: clamp(0.8125rem, 3.6vw, 0.875rem); margin-left: 2px; }
+    /* 포트폴리오·공지 카드 — 내용이 적을 때 작게 */
+    .card { padding: 22px 22px 24px; border-radius: 22px; }
+    .card__head h2 { font-size: 1.375rem; }
+    .card__head a { font-size: 0.875rem; }
+    .card__empty { margin-top: 14px; padding: 16px 14px; border-radius: 14px; font-size: 0.875rem; }
+    .list a { padding: 14px 2px; font-size: 0.9375rem; }
+  }
 </style>
+
+<script>
+  // 투자 프로세스: 단계가 화면 60% 높이를 지나면 번호를 빨간 원으로 (위로 돌아가면 다시 흰 원)
+  const steps = Array.from(document.querySelectorAll<HTMLElement>('[data-steps] > li')).slice(1);
+  if (steps.length) {
+    let queued = false;
+    const paint = () => {
+      queued = false;
+      const line = innerHeight * 0.6;
+      steps.forEach((li) => li.classList.toggle('is-on', li.getBoundingClientRect().top < line));
+    };
+    addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(paint); } }, { passive: true });
+    addEventListener('resize', paint);
+    paint();
+  }
+</script>
